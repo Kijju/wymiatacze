@@ -339,8 +339,8 @@ function renderAll(){
   $('nClimb').textContent='Pierwsze wejście do grupy A, licząc od grupy, w której zawodnik debiutował. Kolejki to liczba obecności do tego dnia.';
   $('tWinda').innerHTML=table([['Zawodnik'],['Zmiany','n'],['Zakres','n']],D.winda.slice(0,10).map(w=>[esc(nm(w.n)),`${pl_(w.rate)}% <span class="sc">${w.ch}/${w.k-1}</span>`,`${G(w.min)}–${G(w.max)}`]));
   $('nWinda').textContent='Jak często grupa zmienia się z kolejki na kolejkę (minimum 30 obecności).';
-  levels(D.levels.map(l=>[l.l,l.n,l.two,l.styk,l.diff]));
-  $('nLvl').textContent='Wszystkie sezony. Im mniej meczów 2:0 i więcej setów na styk, tym bardziej wyrównana grupa.';
+  levels(null);
+  $('nLvl').textContent='Wszystkie sezony. Tiebreak to odsetek meczów rozstrzygniętych w trzecim secie. Na przewagi to odsetek setów, w których przegrany doszedł do punktu przed limitem, czyli był remis na koniec seta (np. 8:8 przy grze do 9, 6:6 przy grze do 7) i grano dalej na przewagi lub do jednego punktu. Limit seta ustalam dla każdej grupy w każdej kolejce na podstawie wyników.';
   times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90]));
   $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. Mediana to godzina, przed którą grupa kończy w połowie wieczorów, a „9 na 10 do” to godzina, przed którą kończy w 9 na 10 wieczorów.';
 }
@@ -386,8 +386,8 @@ function renderSeason(si){
   const wd=s.pl.filter(p=>p.pres>=minP).map(p=>({p,r:p.ch/(p.pres-1)})).sort((a,b)=>b.r-a.r).slice(0,10);
   $('tWinda').innerHTML=wd.length?table([['Zawodnik'],['Zmiany','n'],['Start → koniec','n']],wd.map(o=>[esc(o.p.n),`${pl_(Math.round(1000*o.r)/10)}% <span class="sc">${o.p.ch}/${o.p.pres-1}</span>`,`${G(o.p.start)} → ${G(o.p.end)}`])):empty('Za mało kolejek.');
   $('nWinda').textContent=`Jak często grupa zmieniała się z kolejki na kolejkę (minimum ${minP} obecności).`;
-  levels(s.lv.map(l=>[l[0],l[1],l[2],l[3],null]));
-  $('nLvl').textContent=`Sezon ${name}. Im mniej meczów 2:0 i więcej setów na styk, tym bardziej wyrównana grupa.`;
+  levels(si);
+  $('nLvl').textContent=`Sezon ${name}. Tiebreak to mecze rozstrzygnięte w trzecim secie, na przewagi to sety, w których był remis na punkt przed końcem (np. 8:8 przy grze do 9, 6:6 przy grze do 7).`;
   if(s.tm){times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. „9 na 10 do” to godzina, przed którą grupa kończy w 9 na 10 wieczorów.`;}
   else{$('tTime').innerHTML='';$('nTime').textContent='Okienka kortów są zapisane w systemie dopiero od sezonu 2024/2025, więc dla tego sezonu nie da się tego policzyć.';}
 }
@@ -434,8 +434,13 @@ function style(list,minCb,minSt,nCb,nCl,nPe){
   $('tClutch').innerHTML=cl.length?table([['#','rank'],['Zawodnik'],['Na styk','n']],cl.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.stw,p.stn))}% <span class="sc">${p.stw}/${p.stn}</span>`])):empty('Za mało setów na styk.');
   $('nClutch').textContent=nCl;
 }
-function levels(rows){
-  $('tLvl').innerHTML=table([['Grupa'],['Mecze','n'],['Mecze 2:0','n'],['Śr. różnica w secie','n'],['Sety na styk','n'],[' ']],rows.map(l=>[`<span class="pill">${G(l[0])}</span>`,fmt(l[1]),pl_(l[2])+'%',l[4]==null?'–':pl_(l[4]),pl_(l[3])+'%',`<div class="bar"><i style="width:${Math.min(100,l[3]*4)}%"></i></div>`]));
+function levels(si){
+  const src=si==null?(()=>{const a={};Object.values(D.lvx).forEach(s=>Object.entries(s).forEach(([l,r])=>{const o=(a[l] ||= [0,0,0,0]);r.forEach((v,i)=>o[i]+=v)}));return a})():(D.lvx[si]||{});
+  const diff={};if(si==null) D.levels.forEach(l=>diff[l.l]=l.diff);
+  const rows=Object.entries(src).map(([l,o])=>[+l,o[0],pct(o[1],o[0]),pct(o[3],o[2])]).sort((a,b)=>a[0]-b[0]);
+  const head=[['Grupa'],['Mecze','n'],['Tiebreak','n'],['Na przewagi','n'],[' ']];
+  if(si==null) head.splice(4,0,['Śr. różnica w secie','n']);
+  $('tLvl').innerHTML=table(head,rows.map(r=>{const c=[`<span class="pill">${G(r[0])}</span>`,fmt(r[1]),pl_(r[2])+'%',pl_(r[3])+'%'];if(si==null)c.push(diff[r[0]]==null?'–':pl_(diff[r[0]]));c.push(`<div class="bar"><i style="width:${Math.min(100,r[3]*4)}%"></i></div>`);return c}));
 }
 function times(rows){
   $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['Mediana końca','n'],['Po czasie','n'],['9 na 10 do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
