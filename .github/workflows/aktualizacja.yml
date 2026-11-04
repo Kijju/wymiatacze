@@ -1,0 +1,96 @@
+name: Aktualizacja statystyk
+
+on:
+  schedule:
+    # GitHub liczy czas w UTC. Dwa terminy na dzień obejmują czas zimowy i letni,
+    # a krok "Sprawdź godzinę" przepuszcza tylko ten właściwy (pon 22:30, wt i śr 21:30).
+    - cron: '30 20 * * 1'
+    - cron: '30 21 * * 1'
+    - cron: '30 19 * * 2,3'
+    - cron: '30 20 * * 2,3'
+  workflow_dispatch:
+    inputs:
+      pelne:
+        description: 'Pobierz wszystkie sezony od nowa (np. po poprawkach w starych wynikach)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Sprawdź godzinę
+        id: gate
+        run: |
+          MONTH=$(TZ=Europe/Warsaw date +%-m)
+          DAY=$(TZ=Europe/Warsaw date +%-d)
+          DOW=$(TZ=Europe/Warsaw date +%u)
+          NOW=$(( 10#$(TZ=Europe/Warsaw date +%H) * 60 + 10#$(TZ=Europe/Warsaw date +%M) ))
+          FULL=0
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            if [ "${{ inputs.pelne }}" = "true" ]; then FULL=1; fi
+          else
+            if [ "$MONTH" = "7" ] || [ "$MONTH" = "8" ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "Przerwa wakacyjna, pomijam."; exit 0; fi
+            if [ "$DOW" = "1" ]; then T=$((22*60+30)); else T=$((21*60+30)); fi
+            if [ $NOW -ge $((T-5)) ] && [ $NOW -lt $((T+55)) ]; then
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              # pierwszy poniedziałek miesiąca: pełne odświeżenie archiwum
+              if [ "$DOW" = "1" ] && [ "$DAY" -le 7 ]; then FULL=1; fi
+            else
+              echo "run=false" >> "$GITHUB_OUTPUT"; echo "Nie ta godzina w Polsce ($(TZ=Europe/Warsaw date +%H:%M)), pomijam."
+            fi
+          fi
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '20'
+      - name: Pobierz wyniki i zbuduj stronę
+        if: steps.gate.outputs.run == 'true'
+        env:
+          DATA_KEY: ${{ secrets.DATA_KEY }}
+          FULL: ${{ steps.gate.outputs.full }}
+        run: node scripts/build.mjs
+      - name: Zapisz archiwum sezonów
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          if [ -n "$(git status --porcelain scripts/archive.enc.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+            git add scripts/archive.enc.json
+            git commit -m "Aktualizacja archiwum sezonów"
+            git push
+          else
+            echo "Archiwum bez zmian."
+          fi
+      - uses: actions/configure-pages@v5
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.gate.outputs.run == 'true'
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
