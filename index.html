@@ -131,6 +131,11 @@ nav{align-items:center}
     </div>
     <div class="card"><div class="tbl" id="tSeason"></div></div>
     <div class="card">
+      <h3 id="hGa">Frekwencja w grupach</h3>
+      <div class="tbl" id="tGa"></div>
+      <p class="note" id="nGa"></p>
+    </div>
+    <div class="card">
       <h3>Frekwencja według miesiąca</h3>
       <div id="chMonth"></div>
       <p class="note" id="nMonth"></p>
@@ -302,6 +307,7 @@ function renderAll(){
   lineChart($('chSeason'),D.seasons.map(s=>short(s.s)),[{v:D.seasons.map(s=>s.att),c:css('--tin'),fmt:v=>pl_(v)+'%'}],{min:65,max:85,ticks:[65,70,75,80,85],unit:'%',aria:'Frekwencja w kolejnych sezonach'});
   $('nChSez').textContent='Odsetek zapisanych do grupy, którzy rozegrali w kolejce co najmniej jeden mecz. Sezon 2026/2027 obejmuje dopiero 4 kolejki.';
   seasonTable(-1);
+  gaAll();
   monthChart(mOrder.map(m=>{const v=D.mon[m];return v?pct(v[0],v[1]):null}));
   $('nMonth').textContent='Wszystkie sezony razem. Spadki w kwietniu i maju to święta, majówka i sezon wyjazdów.';
   $('hZaw').textContent='Ścieżka przez grupy';
@@ -349,6 +355,7 @@ function renderSeason(si){
   lineChart($('chSeason'),lab,[{v:s.k.map(k=>k.a),c:css('--tin'),fmt:v=>pl_(v)+'%'}],{min:40,max:100,ticks:[40,60,80,100],unit:'%',every:Math.ceil(lab.length/8),aria:`Frekwencja w kolejnych kolejkach sezonu ${name}`});
   $('nChSez').textContent=`Średnio ${pl_(meta.att)}% zapisanych zagrało w kolejce.`+(cur?' Ostatnia kolejka jest w trakcie, część grup jeszcze nie grała.':'');
   seasonTable(si);
+  gaSeason(si);
   const by={};s.k.forEach(k=>{if(k.a==null)return;const m=+k.d.slice(0,2);(by[m] ||= []).push(k.a)});
   monthChart(mOrder.map(m=>by[m]?Math.round(10*by[m].reduce((a,b)=>a+b,0)/by[m].length)/10:null));
   $('nMonth').textContent=`Średnia frekwencja kolejek w każdym miesiącu sezonu ${name}.`;
@@ -383,6 +390,32 @@ function renderSeason(si){
   $('nLvl').textContent=`Sezon ${name}. Im mniej meczów 2:0 i więcej setów na styk, tym bardziej wyrównana grupa.`;
   if(s.tm){times(s.tm);$('nTime').textContent=`Sezon ${name}. Godzina ostatniego wpisanego wyniku względem końca okienka.`;}
   else{$('tTime').innerHTML='';$('nTime').textContent='Okienka kortów są zapisane w systemie dopiero od sezonu 2024/2025, więc dla tego sezonu nie da się tego policzyć.';}
+}
+
+/* ---------- attendance per group ---------- */
+const heat=v=>v==null?'':`background:color-mix(in srgb, var(--court) ${Math.round(Math.max(0,Math.min(1,(v-40)/60))*55)}%, transparent)`;
+function gaAll(){
+  const lv={},maxL=Math.max(...Object.values(D.ga).flat().map(r=>r[0]));
+  Object.values(D.ga).flat().forEach(r=>{const o=(lv[r[0]] ||= [0,0,0]);o[0]+=r[1];o[1]+=r[2];o[2]+=r[3];});
+  const cols=[...Array(maxL)].map((_,i)=>i+1);
+  const cell=v=>v==null?'<td class="n sc">–</td>':`<td class="n" style="${heat(v)}">${Math.round(v)}%</td>`;
+  let h='<table><thead><tr><th>Sezon</th>'+cols.map(l=>`<th class="n">${G(l)}</th>`).join('')+'</tr></thead><tbody>';
+  D.SN.map((s,i)=>i).reverse().forEach(si=>{const m={};(D.ga[si]||[]).forEach(r=>m[r[0]]=pct(r[2],r[3]));h+=`<tr><td>${D.SN[si]}</td>`+cols.map(l=>cell(m[l]??null)).join('')+'</tr>';});
+  h+='<tr><td><b>Średnia</b></td>'+cols.map(l=>lv[l]?`<td class="n" style="${heat(pct(lv[l][1],lv[l][2]))}"><b>${Math.round(pct(lv[l][1],lv[l][2]))}%</b></td>`:'<td class="n sc">–</td>').join('')+'</tr></tbody></table>';
+  $('tGa').innerHTML=h;
+  $('hGa').textContent='Frekwencja w grupach';
+  $('nGa').textContent='Odsetek zapisanych do grupy, którzy zagrali w kolejce, w każdym sezonie. Ostatni wiersz to średnia z całej historii ligi. Grupy K i L istniały tylko w sezonie 2016/2017.';
+}
+function gaSeason(si){
+  const all={};Object.values(D.ga).flat().forEach(r=>{const o=(all[r[0]] ||= [0,0]);o[0]+=r[2];o[1]+=r[3];});
+  const rows=(D.ga[si]||[]).slice().sort((a,b)=>a[0]-b[0]);
+  const tot=rows.reduce((a,r)=>[a[0]+r[2],a[1]+r[3]],[0,0]);
+  const body=rows.map(r=>{const v=pct(r[2],r[3]),av=pct(all[r[0]][0],all[r[0]][1]),d=Math.round(10*(v-av))/10;
+    return [`<span class="pill">${G(r[0])}</span>`,r[1],pl_(Math.round(10*r[2]/r[1])/10),pl_(Math.round(10*r[3]/r[1])/10),`<b>${pl_(v)}%</b>`,`${pl_(av)}% <span class="${d>=0?'w':'l'}">${d>=0?'+':''}${pl_(d)}</span>`,`<div class="bar"><i style="width:${v}%"></i></div>`]});
+  body.push(['<b>Cały sezon</b>','','','',`<b>${pl_(pct(tot[0],tot[1]))}%</b>`,'','']);
+  $('tGa').innerHTML=table([['Grupa'],['Kolejki','n'],['Śr. grających','n'],['Śr. zapisanych','n'],['Frekwencja','n'],['Średnia historyczna','n'],[' ']],body);
+  $('hGa').textContent=`Frekwencja w grupach ${D.SN[si]}`;
+  $('nGa').textContent='Średnia historyczna to frekwencja tej samej grupy ze wszystkich sezonów. Liczba obok pokazuje różnicę w punktach procentowych.';
 }
 
 /* ---------- shared blocks ---------- */
