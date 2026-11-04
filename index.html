@@ -322,7 +322,7 @@ function renderAll(){
   streaks(P);
   $('tRiv').innerHTML=table([['Para'],['Mecze','n'],['Bilans','n']],D.rivals.map(r=>[`${esc(nm(r.a))} <span class="sc">vs</span> ${esc(nm(r.b))}`,r.x+r.y,`${r.x}–${r.y}`]));
   $('tClose').innerHTML=table([['Data'],['Grupa'],['Mecz'],['Sety']],D.cl.slice(0,12).map(c=>[fd(c.d),`<span class="pill">${G(c.lvl)}</span>`,`${esc(nm(c.a))} <span class="mono">${c.res}</span> ${esc(nm(c.b))}`,`<span class="sc">${c.sc}</span>`]));
-  $('tUps').innerHTML=table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Szansa','n']],D.ups.slice(0,12).map(u=>{const s=u.s.split(':').map(Number).sort((a,b)=>b-a).join(':');return [fd(u.d),`<span class="pill">${G(u.lvl)}</span>`,`<span class="w">${esc(nm(u.w))}</span>`,`<span class="mono">${s}</span>`,`<span class="pill r">${u.p}%</span>`]}));
+  $('tUps').innerHTML=table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],D.ups.slice(0,12).map(u=>{const s=u.s.split(':').map(Number).sort((a,b)=>b-a).join(':');return [fd(u.d),`<span class="pill">${G(u.lvl)}</span>`,`<span class="w">${esc(nm(u.w))}</span>`,`<span class="mono">${s}</span>`,esc(nm(u.l)),`<span class="pill r">${u.p}%</span>`]}));
   style(P,40,60,'Mecze wygrane po przegranym pierwszym secie. Minimum 40 takich meczów.','Skuteczność w setach na styk. Minimum 60 takich setów.','Najwięcej przegranych setów na styk w całej historii.');
   show('cFin',true);
   const fin=P.filter(p=>p.dn>=40&&p.s1n>=80).map(p=>({p,d:pct(p.dw,p.dn)-pct(p.s1w,p.s1n)})).sort((a,b)=>b.d-a.d);
@@ -371,7 +371,7 @@ function renderSeason(si){
   streaks(s.pl);
   $('tRiv').innerHTML=table([['Para'],['Mecze','n'],['Bilans','n']],s.riv.map(r=>[`${esc(NAME(r[0]))} <span class="sc">vs</span> ${esc(NAME(r[1]))}`,r[2]+r[3],`${r[2]}–${r[3]}`]));
   $('tClose').innerHTML=s.cl.length?table([['Data'],['Grupa'],['Mecz'],['Sety']],s.cl.map(c=>[fd6(c[0]),`<span class="pill">${G(c[1])}</span>`,`${esc(NAME(c[2]))} <span class="mono">${c[4]}</span> ${esc(NAME(c[3]))}`,`<span class="sc">${c[5]}</span>`])):empty('Brak meczów trzysetowych.');
-  $('tUps').innerHTML=s.up.length?table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Szansa','n']],s.up.map(u=>[fd6(u[0]),`<span class="pill">${G(u[1])}</span>`,`<span class="w">${esc(NAME(u[2]))}</span>`,`<span class="mono">${u[4]}</span>`,`<span class="pill r">${u[5]}%</span>`])):empty('Brak wyraźnych niespodzianek.');
+  $('tUps').innerHTML=s.up.length?table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],s.up.map(u=>[fd6(u[0]),`<span class="pill">${G(u[1])}</span>`,`<span class="w">${esc(NAME(u[2]))}</span>`,`<span class="mono">${u[4]}</span>`,esc(NAME(u[3])),`<span class="pill r">${u[5]}%</span>`])):empty('Brak wyraźnych niespodzianek.');
   const minCb=Math.max(4,Math.round(meta.kol*0.5)),minSt=Math.max(5,Math.round(meta.kol*0.6));
   style(s.pl,minCb,minSt,`Mecze wygrane po przegranym pierwszym secie. Minimum ${minCb} takich meczów.`,`Skuteczność w setach na styk. Minimum ${minSt} takich setów.`,`Najwięcej przegranych setów na styk w sezonie ${name}.`);
   show('cFin',false);
