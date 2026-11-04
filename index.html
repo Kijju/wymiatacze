@@ -166,7 +166,7 @@ nav{align-items:center}
 
   <section id="mecze">
     <div class="head"><div class="eyebrow">Mecze do zapamiętania</div><h2>Thrillery i niespodzianki</h2></div>
-    <div class="card"><h3>Najbardziej wyrównane mecze</h3><div class="tbl" id="tClose"></div><p class="note">Najwięcej setów granych na przewagi, czyli z remisem na punkt przed końcem seta (np. 8:8 przy grze do 9), potem najwięcej rozegranych punktów.</p></div>
+    <div class="card"><h3>Najbardziej wyrównane mecze</h3><div class="tbl" id="tClose"></div><p class="note">Najwięcej setów granych na przewagi, czyli z remisem na punkt przed końcem seta, potem najwięcej rozegranych punktów.</p></div>
     <div class="card"><h3>Największe niespodzianki</h3><div class="tbl" id="tUps"></div><p class="note">Zwycięzca miał według Elo najwyżej kilkanaście procent szans. Elo w czołówce jest wysokie, bo liczy się z setek meczów, więc procenty są orientacyjne.</p></div>
   </section>
 
@@ -338,7 +338,7 @@ function renderAll(){
   $('tWinda').innerHTML=table([['Zawodnik'],['Zmiany','n'],['Zakres','n']],D.winda.slice(0,10).map(w=>[esc(nm(w.n)),`${pl_(w.rate)}% <span class="sc">${w.ch}/${w.k-1}</span>`,`${G(w.min)}–${G(w.max)}`]));
   $('nWinda').textContent='Jak często grupa zmienia się z kolejki na kolejkę (minimum 30 obecności).';
   levels(null);
-  $('nLvl').textContent='Wszystkie sezony. Tiebreak to odsetek meczów rozstrzygniętych w trzecim secie. Na przewagi to odsetek setów, w których przegrany doszedł do punktu przed limitem, czyli był remis na koniec seta (np. 8:8 przy grze do 9, 6:6 przy grze do 7) i grano dalej na przewagi lub do jednego punktu. Limit seta ustalam dla każdej grupy w każdej kolejce na podstawie wyników. Paski są w skali najwyższej wartości w kolumnie.';
+  $('nLvl').textContent='Wszystkie sezony. Tiebreak to odsetek meczów rozstrzygniętych w trzecim secie. Na przewagi to odsetek setów, w których przegrany doszedł do punktu przed limitem, czyli był remis na koniec seta i grano dalej na przewagi lub do jednego punktu. Limit seta ustalam dla każdej grupy w każdej kolejce na podstawie wyników. Paski są w skali najwyższej wartości w kolumnie.';
   times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90]));
   $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. Mediana to godzina, przed którą grupa kończy w połowie wieczorów, a „9 na 10 do” to godzina, przed którą kończy w 9 na 10 wieczorów.';
 }
@@ -383,7 +383,7 @@ function renderSeason(si){
   $('tWinda').innerHTML=wd.length?table([['Zawodnik'],['Zmiany','n'],['Start → koniec','n']],wd.map(o=>[esc(o.p.n),`${pl_(Math.round(1000*o.r)/10)}% <span class="sc">${o.p.ch}/${o.p.pres-1}</span>`,`${G(o.p.start)} → ${G(o.p.end)}`])):empty('Za mało kolejek.');
   $('nWinda').textContent=`Jak często grupa zmieniała się z kolejki na kolejkę (minimum ${minP} obecności).`;
   levels(si);
-  $('nLvl').textContent=`Sezon ${name}. Tiebreak to mecze rozstrzygnięte w trzecim secie, na przewagi to sety, w których był remis na punkt przed końcem (np. 8:8 przy grze do 9, 6:6 przy grze do 7).`;
+  $('nLvl').textContent=`Sezon ${name}. Tiebreak to mecze rozstrzygnięte w trzecim secie, na przewagi to sety, w których był remis na punkt przed końcem.`;
   if(s.tm){times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. „9 na 10 do” to godzina, przed którą grupa kończy w 9 na 10 wieczorów.`;}
   else{$('tTime').innerHTML='';$('nTime').textContent='Okienka kortów są zapisane w systemie dopiero od sezonu 2024/2025, więc dla tego sezonu nie da się tego policzyć.';}
 }
