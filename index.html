@@ -199,7 +199,7 @@ nav{align-items:center}
   </section>
 
   <footer>
-    <div>Źródło: publiczne dane ligi w tournament.tools, pobrane 4 listopada 2026. Dostęp tylko dla uczestników ligi. Zawodnik jest obecny w kolejce, jeśli rozegrał w niej co najmniej jeden mecz z wynikiem.</div>
+    <div>Źródło: publiczne dane ligi w tournament.tools, pobrane <span id="genFull"></span>. Dostęp tylko dla uczestników ligi. Zawodnik jest obecny w kolejce, jeśli rozegrał w niej co najmniej jeden mecz z wynikiem.</div>
     <div>Bilans z rywalami na karcie zawodnika obejmuje całą historię i pary z co najmniej 15 wspólnymi meczami. Elo w widoku sezonu to wartość na koniec tego sezonu.</div>
   </footer>
 </div>
@@ -229,7 +229,9 @@ const SS=SD.S.map((s,si)=>({
 const table=(head,rows,hl)=>'<table><thead><tr>'+head.map(h=>`<th class="${h[1]||''}">${h[0]}</th>`).join('')+'</tr></thead><tbody>'+rows.map((r,ri)=>`<tr class="${hl===ri?'hl':''}">`+r.map((c,j)=>`<td class="${head[j][1]||''}">${c}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
 const empty=t=>`<p class="note">${t}</p>`;
 const short=s=>s.slice(2,4)+'/'+s.slice(7);
-$('gen').textContent=fd(D.gen);
+const gd=String(D.gen||''), gdate=fd(gd.slice(0,10)), gtime=gd.slice(11,16);
+$('gen').textContent=gdate+(gtime?', godz. '+gtime:'');
+$('genFull').textContent=gdate+(gtime?' o '+gtime:'');
 
 function lineChart(el,labels,series,o){
   const W=640,H=o.h||220,L=38,R=26,T=12,B=28;const iw=W-L-R,ih=H-T-B;
