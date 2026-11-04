@@ -50,7 +50,9 @@ const { raw, newCache, changed, fetched } = await gather(getJson, sids, cache, f
   (d, n) => { if (d % 50 === 0 || d === n) console.log(`Pobrano ${d}/${n} kolejek`); });
 console.log(`Pobrane sezony: ${fetched}.`);
 
-const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' }).format(new Date());
+const nowParts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+  .formatToParts(new Date()).map(p => [p.type, p.value]));
+const today = `${nowParts.year}-${nowParts.month}-${nowParts.day} ${nowParts.hour}:${nowParts.minute}`;
 const data = compute(raw, today);
 const nMatches = data.OLS.seasons.reduce((a, s) => a + s.ms, 0);
 const minMatches = +process.env.OLS_MIN_MATCHES || 30000;
