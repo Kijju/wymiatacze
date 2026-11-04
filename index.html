@@ -340,7 +340,7 @@ function renderAll(){
   levels(null);
   $('nLvl').textContent='Wszystkie sezony. Tiebreak to odsetek meczów rozstrzygniętych w trzecim secie. Na przewagi to odsetek setów, w których przegrany doszedł do punktu przed limitem, czyli był remis na koniec seta i grano dalej na przewagi lub do jednego punktu. Limit seta ustalam dla każdej grupy w każdej kolejce na podstawie wyników. Paski są w skali najwyższej wartości w kolumnie.';
   times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90]));
-  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. Mediana to godzina, przed którą grupa kończy w połowie wieczorów, a „9 na 10 do” to godzina, przed którą kończy w 9 na 10 wieczorów.';
+  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. „5 na 10 do” to godzina, przed którą grupa kończy w połowie wieczorów, a „9 na 10 do” to godzina, przed którą kończy w 9 na 10 wieczorów.';
 }
 
 /* ---------- ONE season ---------- */
@@ -441,7 +441,7 @@ function levels(si){
   $('tLvl').innerHTML=table(head,rows.map(r=>{const c=[`<span class="pill">${G(r[0])}</span>`,fmt(r[1]),vb(r[2],mTb),vb(r[3],mPr)];if(si==null)c.push(diff[r[0]]==null?'–':pl_(diff[r[0]]));return c}));
 }
 function times(rows){
-  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['Mediana końca','n'],['Po czasie','n'],['9 na 10 do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
+  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['5 na 10 do','n'],['Po czasie','n'],['9 na 10 do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
 }
 
 /* ---------- scope switch ---------- */
