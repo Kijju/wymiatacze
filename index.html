@@ -182,7 +182,6 @@ nav{align-items:center}
   <section id="ruch">
     <div class="head"><div class="eyebrow">Awanse i spadki</div><h2>Ruch między grupami</h2></div>
     <div class="kpis" id="kBounce" style="margin-top:0"></div>
-    <div class="card" id="cMove"><h3>Przesunięcia na kolejkę</h3><div id="chMove"></div><p class="note">Średnio na kolejkę: ilu obecnych zawodników awansowało, spadło lub zostało w tej samej grupie co tydzień wcześniej.</p></div>
     <div class="grid2">
       <div class="card"><h3 id="hClimb">Droga na szczyt</h3><div class="tbl" id="tClimb"></div><p class="note" id="nClimb"></p></div>
       <div class="card"><h3>Windy</h3><div class="tbl" id="tWinda"></div><p class="note" id="nWinda"></p></div>
@@ -330,10 +329,7 @@ function renderAll(){
   $('tFin').innerHTML=table([['Zawodnik'],['1. set','n'],['Decydujący','n'],['Różnica','n']],fin.slice(0,8).map(o=>[esc(o.p.n),pl_(pct(o.p.s1w,o.p.s1n))+'%',pl_(pct(o.p.dw,o.p.dn))+'%',`<span class="${o.d>=0?'w':'l'}">${sg(o.d)} pp</span>`]));
   const b=D.bounce;
   kpis('kBounce',[[fmt(b.prom),'awansów od 2015'],[pl_(pct(b.bounce,b.bounce+b.stayUp))+'%','awansujących spada od razu tydzień później'],[pl_(pct(b.stayUp,b.bounce+b.stayUp))+'%','utrzymuje nową grupę lub idzie wyżej']]);
-  show('cMove',true);
-  const lab=D.SN.map(short),avg=j=>D.SN.map(s=>{const v=D.mv[s];return v?Math.round(10*v[j]/v[3])/10:null});
-  lineChart($('chMove'),lab,[{v:avg(0),c:css('--good'),fmt:v=>pl_(v)+' awansów'},{v:avg(1),c:css('--tin'),dash:true,fmt:v=>pl_(v)+' spadków'},{v:avg(2),c:css('--court'),fmt:v=>pl_(v)+' bez zmian'}],{min:0,max:25,ticks:[0,5,10,15,20,25],aria:'Średnia liczba awansów, spadków i pozostań w grupie na kolejkę'});
-  $('chMove').insertAdjacentHTML('beforeend',`<div class="sc" style="display:flex;gap:14px;flex-wrap:wrap"><span><span class="w">●</span> awanse</span><span style="color:var(--tin)">- - spadki</span><span style="color:var(--court)">● bez zmian</span></div>`);
+  $('kBounce').hidden=false;
   $('hClimb').textContent='Droga na szczyt';
   $('tClimb').innerHTML=table([['Zawodnik'],['Debiut','n'],['Kolejki','n'],['Grupa A od']],D.climbs.slice(0,10).map(c=>[esc(nm(c.n)),`<span class="pill">${G(c.from)}</span>`,c.k,fd(c.d)]));
   $('nClimb').textContent='Pierwsze wejście do grupy A, licząc od grupy, w której zawodnik debiutował. Kolejki to liczba obecności do tego dnia.';
@@ -375,9 +371,7 @@ function renderSeason(si){
   const minCb=Math.max(4,Math.round(meta.kol*0.5)),minSt=Math.max(5,Math.round(meta.kol*0.6));
   style(s.pl,minCb,minSt,`Mecze wygrane po przegranym pierwszym secie. Minimum ${minCb} takich meczów.`,`Skuteczność w setach na styk. Minimum ${minSt} takich setów.`,`Najwięcej przegranych setów na styk w sezonie ${name}.`);
   show('cFin',false);
-  const mv=D.mv[name];
-  kpis('kBounce',mv?[[pl_(Math.round(10*mv[0]/mv[3])/10),'awansów na kolejkę'],[pl_(Math.round(10*mv[1]/mv[3])/10),'spadków na kolejkę'],[pl_(Math.round(10*mv[2]/mv[3])/10),'zostaje w tej samej grupie']]:[['–','brak danych']]);
-  show('cMove',false);
+  $('kBounce').hidden=true;
   $('hClimb').textContent='Największe awanse w sezonie';
   const cl=s.pl.filter(p=>p.start-p.best>0).sort((a,b)=>(b.start-b.best)-(a.start-a.best)||a.best-b.best).slice(0,10);
   $('tClimb').innerHTML=cl.length?table([['Zawodnik'],['Start','n'],['Najwyżej','n'],['Koniec','n']],cl.map(p=>[esc(p.n),`<span class="pill">${G(p.start)}</span>`,`<span class="pill r">${G(p.best)}</span>`,G(p.end)])):empty('Nikt jeszcze nie awansował.');
