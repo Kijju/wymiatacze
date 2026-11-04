@@ -271,7 +271,7 @@ function drawPlayerAll(p){
   se.forEach((v,i)=>s+=`<circle cx="${x(i)}" cy="${y(v.avg)}" r="4" fill="${css('--tin')}" stroke="${css('--panel')}" stroke-width="1.5"><title>${D.SN[v.si]}: średnio ${pl_(v.avg)}, najwyżej ${G(v.best)}, ${v.pres}/${v.enr} kolejek</title></circle>`);
   h+=`<div><div class="eyebrow" style="color:var(--muted);margin-bottom:4px">Grupa w sezonach · linia: średnia grupa, pasek: od najwyższej osiągniętej grupy</div>${s}</svg></div>`;
   h+=rivalsHtml(p.i);
-  h+=`<div class="tbl">${table([['Sezon'],['Obecność','n'],['Start','n'],['Najwyżej','n'],['Koniec','n']],se.map(v=>[D.SN[v.si],`${v.pres}/${v.enr}`,G(v.start),G(v.best),G(v.end)]))}</div>`;
+  h+=`<div class="tbl">${table([['Sezon'],['Obecność','n'],['Start','n'],['Najwyżej','n'],['Koniec','n']],se.slice().reverse().map(v=>[D.SN[v.si],`${v.pres}/${v.enr}`,G(v.start),G(v.best),G(v.end)]))}</div>`;
   $('pcard').innerHTML=h;
 }
 function drawPlayerSeason(r,si){
@@ -336,7 +336,7 @@ function renderAll(){
   levels(D.levels.map(l=>[l.l,l.n,l.two,l.styk,l.diff]));
   $('nLvl').textContent='Wszystkie sezony. Im mniej meczów 2:0 i więcej setów na styk, tym bardziej wyrównana grupa.';
   times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90]));
-  $('nTime').textContent='Sezony 2024/2025–2026/2027. Godzina ostatniego wpisanego wyniku względem końca okienka. System nie zapisuje, kto wpisał wynik.';
+  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Godzina ostatniego wpisanego wyniku w dniu gry grupy. System nie zapisuje, kto wpisał wynik.';
 }
 
 /* ---------- ONE season ---------- */
@@ -388,7 +388,7 @@ function renderSeason(si){
 /* ---------- shared blocks ---------- */
 function seasonTable(hl){
   $('tSeason').innerHTML=table([['Sezon'],['Kolejki','n'],['Zawodnicy','n'],['Śr. obecnych','n'],['Frekwencja','n'],['Nowi','n'],['Nie wrócili','n'],['Mecze','n']],
-    D.seasons.map(s=>[s.s,s.kol,s.players,pl_(s.avgPres),pl_(s.att)+'%',s.newP,s.left==null?'–':s.left,fmt(s.ms)]),hl);
+    D.seasons.map(s=>[s.s,s.kol,s.players,pl_(s.avgPres),pl_(s.att)+'%',s.newP,s.left==null?'–':s.left,fmt(s.ms)]).reverse(),hl<0?-1:D.seasons.length-1-hl);
 }
 function streaks(list){
   $('tWin').innerHTML=table([['#','rank'],['Zawodnik'],['Mecze z rzędu','n']],list.slice().sort((a,b)=>b.bw-a.bw).slice(0,10).map((p,i)=>[i+1,esc(p.n),`<b>${p.bw}</b>`]));
@@ -405,7 +405,7 @@ function levels(rows){
   $('tLvl').innerHTML=table([['Grupa'],['Mecze','n'],['Mecze 2:0','n'],['Śr. różnica w secie','n'],['Sety na styk','n'],[' ']],rows.map(l=>[`<span class="pill">${G(l[0])}</span>`,fmt(l[1]),pl_(l[2])+'%',l[4]==null?'–':pl_(l[4]),pl_(l[3])+'%',`<div class="bar"><i style="width:${Math.min(100,l[3]*4)}%"></i></div>`]));
 }
 function times(rows){
-  $('tTime').innerHTML=table([['Grupa'],['Okienko'],['Wieczory','n'],['Mediana końca','n'],['Po czasie','n'],['9 na 10 do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
+  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['Mediana końca','n'],['Po czasie','n'],['9 na 10 do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
 }
 
 /* ---------- scope switch ---------- */
