@@ -285,8 +285,9 @@ let curList=[], curDraw=null;
 function setupSearch(list,draw,pref){
   curList=list;curDraw=draw;
   $('names').innerHTML=list.slice().sort((a,b)=>a.n.localeCompare(b.n,'pl')).map(p=>`<option value="${esc(p.n)}">`).join('');
+  const me=window.OLS_ME&&list.find(p=>p.n===window.OLS_ME);
   let start=pref;try{start=start||localStorage.getItem('ols-player')}catch(e){}
-  const def=(start&&list.find(p=>p.n.toLowerCase()===start.toLowerCase()))||list.slice().sort((a,b)=>b.pres-a.pres||b.elo-a.elo)[0];
+  const def=me||(start&&list.find(p=>p.n.toLowerCase()===start.toLowerCase()))||list.slice().sort((a,b)=>b.pres-a.pres||b.elo-a.elo)[0];
   $('q').value=def.n;draw(def);
 }
 function pick(){const v=$('q').value.trim().toLowerCase();if(!v)return;const p=curList.find(x=>x.n.toLowerCase()===v)||curList.find(x=>x.n.toLowerCase().includes(v));if(p){curDraw(p);try{localStorage.setItem('ols-player',p.n)}catch(e){}}}
@@ -431,8 +432,8 @@ async function openWithKey(raw,login){
   const k=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(v.iv)},k,b64(v.data));
   const d=JSON.parse(new TextDecoder().decode(pt));
-  window.OLS=d.OLS; window.OLS_S=d.OLS_S;
-  $('login').hidden=true; $('app').hidden=false; $('whoami').textContent='Zalogowany: '+login;
+  window.OLS=d.OLS; window.OLS_S=d.OLS_S; window.OLS_ME=(d.ME&&d.ME[login])||null;
+  $('login').hidden=true; $('app').hidden=false; $('whoami').textContent='Zalogowany: '+(window.OLS_ME||login);
   startApp();
 }
 async function login(user,pass){
