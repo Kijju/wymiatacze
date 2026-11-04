@@ -342,7 +342,7 @@ function renderAll(){
   levels(D.levels.map(l=>[l.l,l.n,l.two,l.styk,l.diff]));
   $('nLvl').textContent='Wszystkie sezony. Im mniej meczów 2:0 i więcej setów na styk, tym bardziej wyrównana grupa.';
   times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90]));
-  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Godzina ostatniego wpisanego wyniku w dniu gry grupy. System nie zapisuje, kto wpisał wynik.';
+  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. Mediana to godzina, przed którą grupa kończy w połowie wieczorów, a „9 na 10 do” to godzina, przed którą kończy w 9 na 10 wieczorów.';
 }
 
 /* ---------- ONE season ---------- */
@@ -388,7 +388,7 @@ function renderSeason(si){
   $('nWinda').textContent=`Jak często grupa zmieniała się z kolejki na kolejkę (minimum ${minP} obecności).`;
   levels(s.lv.map(l=>[l[0],l[1],l[2],l[3],null]));
   $('nLvl').textContent=`Sezon ${name}. Im mniej meczów 2:0 i więcej setów na styk, tym bardziej wyrównana grupa.`;
-  if(s.tm){times(s.tm);$('nTime').textContent=`Sezon ${name}. Godzina ostatniego wpisanego wyniku względem końca okienka.`;}
+  if(s.tm){times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. „9 na 10 do” to godzina, przed którą grupa kończy w 9 na 10 wieczorów.`;}
   else{$('tTime').innerHTML='';$('nTime').textContent='Okienka kortów są zapisane w systemie dopiero od sezonu 2024/2025, więc dla tego sezonu nie da się tego policzyć.';}
 }
 
