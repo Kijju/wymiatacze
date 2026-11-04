@@ -166,7 +166,7 @@ nav{align-items:center}
 
   <section id="mecze">
     <div class="head"><div class="eyebrow">Mecze do zapamiętania</div><h2>Thrillery i niespodzianki</h2></div>
-    <div class="card"><h3>Najbardziej wyrównane mecze</h3><div class="tbl" id="tClose"></div><p class="note">Najwięcej setów rozstrzygniętych na styk (różnica do 2 punktów przy co najmniej 8 punktach przegranego), potem najwięcej rozegranych punktów.</p></div>
+    <div class="card"><h3>Najbardziej wyrównane mecze</h3><div class="tbl" id="tClose"></div><p class="note">Najwięcej setów granych na przewagi, czyli z remisem na punkt przed końcem seta (np. 8:8 przy grze do 9), potem najwięcej rozegranych punktów.</p></div>
     <div class="card"><h3>Największe niespodzianki</h3><div class="tbl" id="tUps"></div><p class="note">Zwycięzca miał według Elo najwyżej kilkanaście procent szans. Elo w czołówce jest wysokie, bo liczy się z setek meczów, więc procenty są orientacyjne.</p></div>
   </section>
 
@@ -281,7 +281,7 @@ function drawPlayerAll(p){
 function drawPlayerSeason(r,si){
   const mp=r.mw+r.ml;
   let h=`<div><h3 style="font-size:1.7rem">${esc(r.n)}</h3><div class="sc">Sezon ${D.SN[si]} · grupa ${G(r.start)} → ${G(r.end)}, najwyżej ${G(r.best)}</div></div>`;
-  h+=statGrid([[`${r.pres}/${r.enr}`,`kolejek (${pl_(pct(r.pres,r.enr))}% obecności)`],[`${r.mw}–${r.ml}`,`mecze (${pl_(pct(r.mw,mp))}% wygranych)`],[`${r.sw}–${r.sl}`,'sety'],[r.elo,'Elo na koniec sezonu'],[r.bw,'najdłuższa seria wygranych'],[r.cbn?pl_(pct(r.cbw,r.cbn))+'%':'–',`powrotów (${r.cbw}/${r.cbn})`],[r.stn?pl_(pct(r.stw,r.stn))+'%':'–',`wygranych setów na styk (${r.stw}/${r.stn})`],[pl_(r.avg),'średnia grupa (A=1)']]);
+  h+=statGrid([[`${r.pres}/${r.enr}`,`kolejek (${pl_(pct(r.pres,r.enr))}% obecności)`],[`${r.mw}–${r.ml}`,`mecze (${pl_(pct(r.mw,mp))}% wygranych)`],[`${r.sw}–${r.sl}`,'sety'],[r.elo,'Elo na koniec sezonu'],[r.bw,'najdłuższa seria wygranych'],[r.cbn?pl_(pct(r.cbw,r.cbn))+'%':'–',`powrotów (${r.cbw}/${r.cbn})`],[r.stn?pl_(pct(r.stw,r.stn))+'%':'–',`wygranych setów na przewagi (${r.stw}/${r.stn})`],[pl_(r.avg),'średnia grupa (A=1)']]);
   if(r.i<P.length) h+=rivalsHtml(r.i);
   $('pcard').innerHTML=h;
 }
@@ -322,13 +322,13 @@ function renderAll(){
   $('tRiv').innerHTML=table([['Para'],['Mecze','n'],['Bilans','n']],D.rivals.map(r=>[`${esc(nm(r.a))} <span class="sc">vs</span> ${esc(nm(r.b))}`,r.x+r.y,`${r.x}–${r.y}`]));
   $('tClose').innerHTML=table([['Data'],['Grupa'],['Mecz'],['Sety']],D.cl.slice(0,12).map(c=>[fd(c.d),`<span class="pill">${G(c.lvl)}</span>`,`${esc(nm(c.a))} <span class="mono">${c.res}</span> ${esc(nm(c.b))}`,`<span class="sc">${c.sc}</span>`]));
   $('tUps').innerHTML=table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],D.ups.slice(0,12).map(u=>{const s=u.s.split(':').map(Number).sort((a,b)=>b-a).join(':');return [fd(u.d),`<span class="pill">${G(u.lvl)}</span>`,`<span class="w">${esc(nm(u.w))}</span>`,`<span class="mono">${s}</span>`,esc(nm(u.l)),`<span class="pill r">${u.p}%</span>`]}));
-  style(P,40,60,'Mecze wygrane po przegranym pierwszym secie. Minimum 40 takich meczów.','Skuteczność w setach na styk. Minimum 60 takich setów.','Najwięcej przegranych setów na styk w całej historii.');
+  style(P,40,60,'Mecze wygrane po przegranym pierwszym secie. Minimum 40 takich meczów.','Skuteczność w setach granych na przewagi. Minimum 60 takich setów.','Najwięcej przegranych setów na przewagi w całej historii.');
   show('cFin',true);
   const fin=P.filter(p=>p.dn>=40&&p.s1n>=80).map(p=>({p,d:pct(p.dw,p.dn)-pct(p.s1w,p.s1n)})).sort((a,b)=>b.d-a.d);
   const sg=d=>(d>0?'+':'')+d.toFixed(1).replace('.',',');
   $('tFin').innerHTML=table([['Zawodnik'],['1. set','n'],['Decydujący','n'],['Różnica','n']],fin.slice(0,8).map(o=>[esc(o.p.n),pl_(pct(o.p.s1w,o.p.s1n))+'%',pl_(pct(o.p.dw,o.p.dn))+'%',`<span class="${o.d>=0?'w':'l'}">${sg(o.d)} pp</span>`]));
   const b=D.bounce;
-  kpis('kBounce',[[fmt(b.prom),'awansów od 2015'],[pl_(pct(b.bounce,b.bounce+b.stayUp))+'%','awansujących spada od razu tydzień później'],[pl_(pct(b.stayUp,b.bounce+b.stayUp))+'%','utrzymuje nową grupę lub idzie wyżej']]);
+  kpis('kBounce',[[pl_(pct(b.bounce,b.bounce+b.stayUp))+'%','awansujących spada od razu tydzień później'],[pl_(pct(b.stayUp,b.bounce+b.stayUp))+'%','utrzymuje nową grupę lub idzie wyżej']]);
   $('kBounce').hidden=false;
   $('hClimb').textContent='Droga na szczyt';
   $('tClimb').innerHTML=table([['Zawodnik'],['Debiut','n'],['Kolejki','n'],['Grupa A od']],D.climbs.slice(0,10).map(c=>[esc(nm(c.n)),`<span class="pill">${G(c.from)}</span>`,c.k,fd(c.d)]));
@@ -369,7 +369,7 @@ function renderSeason(si){
   $('tClose').innerHTML=s.cl.length?table([['Data'],['Grupa'],['Mecz'],['Sety']],s.cl.map(c=>[fd6(c[0]),`<span class="pill">${G(c[1])}</span>`,`${esc(NAME(c[2]))} <span class="mono">${c[4]}</span> ${esc(NAME(c[3]))}`,`<span class="sc">${c[5]}</span>`])):empty('Brak meczów trzysetowych.');
   $('tUps').innerHTML=s.up.length?table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],s.up.map(u=>[fd6(u[0]),`<span class="pill">${G(u[1])}</span>`,`<span class="w">${esc(NAME(u[2]))}</span>`,`<span class="mono">${u[4]}</span>`,esc(NAME(u[3])),`<span class="pill r">${u[5]}%</span>`])):empty('Brak wyraźnych niespodzianek.');
   const minCb=Math.max(4,Math.round(meta.kol*0.5)),minSt=Math.max(5,Math.round(meta.kol*0.6));
-  style(s.pl,minCb,minSt,`Mecze wygrane po przegranym pierwszym secie. Minimum ${minCb} takich meczów.`,`Skuteczność w setach na styk. Minimum ${minSt} takich setów.`,`Najwięcej przegranych setów na styk w sezonie ${name}.`);
+  style(s.pl,minCb,minSt,`Mecze wygrane po przegranym pierwszym secie. Minimum ${minCb} takich meczów.`,`Skuteczność w setach granych na przewagi. Minimum ${minSt} takich setów.`,`Najwięcej przegranych setów na przewagi w sezonie ${name}.`);
   show('cFin',false);
   $('kBounce').hidden=true;
   $('hClimb').textContent='Największe awanse w sezonie';
@@ -425,7 +425,7 @@ function style(list,minCb,minSt,nCb,nCl,nPe){
   $('tCb').innerHTML=cb.length?table([['#','rank'],['Zawodnik'],['Powroty','n']],cb.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.cbw,p.cbn))}% <span class="sc">${p.cbw}/${p.cbn}</span>`])):empty('Za mało meczów.');
   $('nCb').textContent=nCb;
   const cl=list.filter(p=>p.stn>=minSt).sort((a,b)=>b.stw/b.stn-a.stw/a.stn||b.stn-a.stn).slice(0,10);
-  $('tClutch').innerHTML=cl.length?table([['#','rank'],['Zawodnik'],['Na styk','n']],cl.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.stw,p.stn))}% <span class="sc">${p.stw}/${p.stn}</span>`])):empty('Za mało setów na styk.');
+  $('tClutch').innerHTML=cl.length?table([['#','rank'],['Zawodnik'],['Na przewagi','n']],cl.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.stw,p.stn))}% <span class="sc">${p.stw}/${p.stn}</span>`])):empty('Za mało setów na przewagi.');
   $('nClutch').textContent=nCl;
 }
 function levels(si){
