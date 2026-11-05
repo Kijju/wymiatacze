@@ -303,7 +303,7 @@ $('q').addEventListener('change',pick);$('q').addEventListener('keydown',e=>{if(
 
 /* ---------- ALL seasons ---------- */
 function renderAll(){
-  $('lede').textContent='Dwanaście sezonów kolejek na kortach OSiR, policzone z wyników zapisanych w tournament.tools: frekwencja, ścieżki zawodników przez grupy, serie, rywalizacje i najbardziej wyrównane mecze.';
+  $('lede').textContent=`${D.SN.length} ${odm(D.SN.length,'sezon','sezony','sezonów')} kolejek na kortach OSiR, policzone z wyników zapisanych w tournament.tools: frekwencja, ścieżki zawodników przez grupy, serie, rywalizacje i najbardziej wyrównane mecze.`;
   const totM=D.seasons.reduce((a,s)=>a+s.ms,0), totK=D.seasons.reduce((a,s)=>a+s.kol,0), totPl=D.seasons.reduce((a,s)=>a+s.newP,0);
   kpis('kpis',[[D.SN.length,odm(D.SN.length,'sezon','sezony','sezonów')],[totK,odm(totK,'kolejka','kolejki','kolejek')],[fmt(totM),odm(totM,'mecz','mecze','meczów')],[totPl,odm(totPl,'zawodnik lub zawodniczka','zawodników i zawodniczek','zawodników i zawodniczek')]]);
   $('hSez').textContent='Sezon po sezonie';$('hChSez').textContent='Frekwencja w sezonach';
