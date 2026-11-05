@@ -253,6 +253,8 @@ function monthChart(vals){
   vals.forEach((v,i)=>{const bx=L+i*bw+bw*.2;s+=`<text x="${bx+bw*.3}" y="${H-8}" text-anchor="middle">${mn[i]}</text>`;if(v==null)return;const vv=Math.max(min,v);s+=`<rect x="${bx}" y="${y(vv)}" width="${bw*.6}" height="${y(min)-y(vv)}" rx="3" fill="${v<75?css('--tin'):css('--court')}"><title>${mn[i]}: ${pl_(v)}%</title></rect><text x="${bx+bw*.3}" y="${y(vv)-5}" text-anchor="middle">${Math.round(v)}</text>`});
   $('chMonth').innerHTML=s+'</svg>';
 }
+// odmiana po liczebniku: odm(n,'kolejka','kolejki','kolejek')
+const odm=(n,a,b,c)=>{n=Math.abs(n);const d=n%10,t=n%100;return n===1?a:(d>=2&&d<=4&&(t<12||t>14))?b:c};
 const kpis=(el,arr)=>{$(el).innerHTML=arr.map(k=>`<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('')};
 const mOrder=[9,10,11,12,1,2,3,4,5,6];
 
@@ -265,8 +267,8 @@ function rivalsHtml(pi){
 function statGrid(items){return `<div class="pstats">${items.map(i=>`<div><b>${i[0]}</b><span>${i[1]}</span></div>`).join('')}</div>`}
 function drawPlayerAll(p){
   const mp=p.mw+p.ml, se=p.se;
-  let h=`<div><h3 style="font-size:1.7rem">${esc(p.n)}</h3><div class="sc">${D.SN[se[0].si]}${se.length>1?' – '+D.SN[se[se.length-1].si]:''} · ${se.length} ${se.length===1?'sezon':se.length<5?'sezony':'sezonów'}</div></div>`;
-  h+=statGrid([[p.pres,`kolejek (z ${p.enr} zapisów, ${pl_(pct(p.pres,p.enr))}%)`],[`${p.mw}–${p.ml}`,`mecze (${pl_(pct(p.mw,mp))}% wygranych)`],[`${p.sw}–${p.sl}`,'sety'],[p.elo,`Elo teraz (szczyt ${p.em})`],[p.bw,'najdłuższa seria wygranych'],[pl_(pct(p.cbw,p.cbn))+'%','powrotów po przegranym 1. secie']]);
+  let h=`<div><h3 style="font-size:1.7rem">${esc(p.n)}</h3><div class="sc">${D.SN[se[0].si]}${se.length>1?' – '+D.SN[se[se.length-1].si]:''} · ${se.length} ${odm(se.length,'sezon','sezony','sezonów')}</div></div>`;
+  h+=statGrid([[p.pres,`${odm(p.pres,'kolejka','kolejki','kolejek')} (z ${p.enr} ${p.enr===1?'zapisu':'zapisów'}, ${pl_(pct(p.pres,p.enr))}%)`],[`${p.mw}–${p.ml}`,`mecze (${pl_(pct(p.mw,mp))}% wygranych)`],[`${p.sw}–${p.sl}`,'sety'],[p.elo,`Elo teraz (szczyt ${p.em})`],[p.bw,'najdłuższa seria wygranych'],[pl_(pct(p.cbw,p.cbn))+'%','powrotów po przegranym 1. secie']]);
   const W=640,Hh=200,L=30,R=26,T=12,B=28,iw=W-L-R,ih=Hh-T-B;
   const lvls=se.flatMap(s=>[s.best,s.end,s.start]),lmax=Math.max(...lvls,3),lmin=1;
   const n=se.length,x=i=>L+(n===1?iw/2:i*iw/(n-1)),y=v=>T+(v-lmin)/(lmax-lmin||1)*ih;
@@ -303,7 +305,7 @@ $('q').addEventListener('change',pick);$('q').addEventListener('keydown',e=>{if(
 function renderAll(){
   $('lede').textContent='Dwanaście sezonów kolejek na kortach OSiR, policzone z wyników zapisanych w tournament.tools: frekwencja, ścieżki zawodników przez grupy, serie, rywalizacje i najbardziej wyrównane mecze.';
   const totM=D.seasons.reduce((a,s)=>a+s.ms,0), totK=D.seasons.reduce((a,s)=>a+s.kol,0), totPl=D.seasons.reduce((a,s)=>a+s.newP,0);
-  kpis('kpis',[[D.SN.length,'sezonów'],[totK,'kolejek'],[fmt(totM),'meczów'],[totPl,'zawodników i zawodniczek']]);
+  kpis('kpis',[[D.SN.length,odm(D.SN.length,'sezon','sezony','sezonów')],[totK,odm(totK,'kolejka','kolejki','kolejek')],[fmt(totM),odm(totM,'mecz','mecze','meczów')],[totPl,odm(totPl,'zawodnik lub zawodniczka','zawodników i zawodniczek','zawodników i zawodniczek')]]);
   $('hSez').textContent='Sezon po sezonie';$('hChSez').textContent='Frekwencja w sezonach';
   lineChart($('chSeason'),D.seasons.map(s=>short(s.s)),[{v:D.seasons.map(s=>s.att),c:css('--tin'),fmt:v=>pl_(v)+'%'}],{min:65,max:85,ticks:[65,70,75,80,85],unit:'%',aria:'Frekwencja w kolejnych sezonach'});
   $('nChSez').textContent='Odsetek zapisanych do grupy, którzy rozegrali w kolejce co najmniej jeden mecz. Sezon 2026/2027 obejmuje dopiero 4 kolejki.';
@@ -346,8 +348,8 @@ function renderAll(){
 /* ---------- ONE season ---------- */
 function renderSeason(si){
   const s=SS[si], meta=D.seasons[si], name=D.SN[si], cur=si===D.SN.length-1;
-  $('lede').textContent=`Sezon ${name}: ${meta.kol} kolejek, ${meta.players} zawodników i zawodniczek. Wszystkie tabele poniżej liczą tylko mecze z tego sezonu.`;
-  kpis('kpis',[[meta.kol,'kolejek'],[fmt(meta.ms),'meczów'],[meta.players,'zawodników'],[pl_(meta.att)+'%','frekwencji'],[meta.newP,'debiutantów']]);
+  $('lede').textContent=`Sezon ${name}: ${meta.kol} ${odm(meta.kol,'kolejka','kolejki','kolejek')}, ${meta.players} ${odm(meta.players,'zawodnik lub zawodniczka','zawodników i zawodniczek','zawodników i zawodniczek')}. Wszystkie tabele poniżej liczą tylko mecze z tego sezonu.`;
+  kpis('kpis',[[meta.kol,odm(meta.kol,'kolejka','kolejki','kolejek')],[fmt(meta.ms),odm(meta.ms,'mecz','mecze','meczów')],[meta.players,odm(meta.players,'zawodnik','zawodników','zawodników')],[pl_(meta.att)+'%','frekwencji'],[meta.newP,odm(meta.newP,'debiutant','debiutantów','debiutantów')]]);
   $('hSez').textContent='Kolejka po kolejce';$('hChSez').textContent=`Frekwencja w kolejkach ${name}`;
   const lab=s.k.map(k=>k.d.slice(2)+'.'+k.d.slice(0,2));
   lineChart($('chSeason'),lab,[{v:s.k.map(k=>k.a),c:css('--tin'),fmt:v=>pl_(v)+'%'}],{min:40,max:100,ticks:[40,60,80,100],unit:'%',every:Math.ceil(lab.length/8),aria:`Frekwencja w kolejnych kolejkach sezonu ${name}`});
