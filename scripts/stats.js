@@ -170,7 +170,7 @@ function compute(raw, today) {
   climbs.sort((a, b) => b.from - a.from || a.k - b.k);
   const winda = Object.values(P).filter(p => p.path.length >= 30).map(p => { let ch = 0; for (let i = 1; i < p.path.length; i++) if (p.path[i][1] !== p.path[i - 1][1]) ch++;
     const lv = p.path.map(x => x[1]); return { n: p.n, ch, k: p.path.length, rate: r1(100 * ch / (p.path.length - 1)), min: Math.min(...lv), max: Math.max(...lv) }; })
-    .sort((a, b) => b.rate - a.rate).slice(0, 15);
+    .sort((a, b) => b.rate - a.rate);
 
   // sezony
   const firstSeason = {}; Object.values(P).forEach(p => { if (p.path.length) firstSeason[p.id] = K[p.path[0][0]].si; });
@@ -202,24 +202,24 @@ function compute(raw, today) {
 
   const ymd6 = d => d.slice(2).replace(/-/g, '');
   const closeSort = (a, b) => b.nd - a.nd || b.tot - a.tot;
-  const rivals = Object.entries(H).sort((a, b) => (b[1][0] + b[1][1]) - (a[1][0] + a[1][1])).slice(0, 15)
+  const rivals = Object.entries(H).sort((a, b) => (b[1][0] + b[1][1]) - (a[1][0] + a[1][1])).slice(0, 50)
     .map(([k, v]) => { const [a, b] = k.split('|'); return { a: NM(a), b: NM(b), x: v[0], y: v[1] }; });
-  const upsAll = ups.slice().sort((a, b) => a.p - b.p).slice(0, 15)
+  const upsAll = ups.slice().sort((a, b) => a.p - b.p).slice(0, 50)
     .map(u => ({ w: NM(u.w), l: NM(u.l), p: Math.max(1, Math.round(100 * u.p)), we: u.we, le: u.le, d: u.d, s: u.s, lvl: u.lvl }));
-  const clAll = close.slice().sort(closeSort).slice(0, 12).map(c => ({ a: NM(c.a), b: NM(c.b), d: c.d, lvl: c.lvl, sc: c.sc, res: c.res }));
+  const clAll = close.slice().sort(closeSort).slice(0, 50).map(c => ({ a: NM(c.a), b: NM(c.b), d: c.d, lvl: c.lvl, sc: c.sc, res: c.res }));
 
   const S = SN.map((s, si) => { const a = SA[si];
     const rows = Object.entries(a.pl).filter(([id, r]) => r.pres > 0).map(([id, r]) => { const L = r.L; let ch = 0; for (let i = 1; i < L.length; i++) if (L[i] !== L[i - 1]) ch++;
       return [IX(id), r.enr, r.pres, r.mw, r.ml, r.sw, r.sl, Math.round(r.elo || 0), r.bw, r.bl, r.cbw, r.cbn, r.stw, r.stn, L[0], Math.min(...L), L[L.length - 1], Math.round(10 * L.reduce((x, y) => x + y, 0) / L.length), ch].join(','); }).join(';');
-    const riv = Object.entries(a.riv).sort((x, y) => (y[1][0] + y[1][1]) - (x[1][0] + x[1][1])).slice(0, 6).map(([k, v]) => { const [p, q] = k.split('|'); return [IX(p), IX(q), v[0], v[1]]; });
-    const cl = close.filter(c => c.si === si).sort(closeSort).slice(0, 6).map(c => [ymd6(c.d), c.lvl, IX(c.a), IX(c.b), c.res, c.sc]);
-    const up = ups.filter(u => u.si === si).sort((x, y) => x.p - y.p).slice(0, 6).map(u => [ymd6(u.d), u.lvl, IX(u.w), IX(u.l), u.s, Math.max(1, Math.round(100 * u.p))]);
+    const riv = Object.entries(a.riv).sort((x, y) => (y[1][0] + y[1][1]) - (x[1][0] + x[1][1])).slice(0, 30).map(([k, v]) => { const [p, q] = k.split('|'); return [IX(p), IX(q), v[0], v[1]]; });
+    const cl = close.filter(c => c.si === si).sort(closeSort).slice(0, 30).map(c => [ymd6(c.d), c.lvl, IX(c.a), IX(c.b), c.res, c.sc]);
+    const up = ups.filter(u => u.si === si).sort((x, y) => x.p - y.p).slice(0, 30).map(u => [ymd6(u.d), u.lvl, IX(u.w), IX(u.l), u.s, Math.max(1, Math.round(100 * u.p))]);
     const lv = Object.entries(a.lvx).map(([l, v]) => [+l, v[0], pct(v[0] - v[1], v[0]), pct(v[3], v[2])]);
     const o = { k: a.k.join(','), pl: rows, riv, cl, up, lv };
     if (tPer[si]) o.tm = Object.entries(tPer[si]).map(([l, x]) => trow(l, x));
     return o; });
 
-  const D = { gen: today, SN, pl, h2h, mv: {}, bounce: { prom, bounce, stayUp }, climbs: climbs.slice(0, 15), winda, seasons, mon, levels,
+  const D = { gen: today, SN, pl, h2h, mv: {}, bounce: { prom, bounce, stayUp }, climbs, winda, seasons, mon, levels,
     times: Object.entries(tAll).map(([l, o]) => { const t = trow(l, o); return { l: t[0], w: t[1], n: t[2], med: t[3], late: t[4], p90: t[5] }; }),
     rivals, ups: upsAll, cl: clAll,
     ga: Object.fromEntries(SA.map((a, si) => [si, Object.entries(a.ga).map(([l, r]) => [+l, ...r])])),

@@ -50,6 +50,10 @@ section{padding-top:40px;scroll-margin-top:60px;display:grid;gap:18px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:10px;min-width:0}
 .card p.note{margin:0;color:var(--muted);font-size:.88rem}
 .tbl{overflow-x:auto}
+.mw:not(.open) tr.more{display:none}
+.morebtn{margin-top:8px;font:600 .75rem/1 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;background:none;border:1px solid var(--line);border-radius:4px;padding:7px 10px;color:var(--ink);cursor:pointer}
+.morebtn:hover{border-color:var(--muted)}
+.morebtn:focus-visible{outline:2px solid var(--court);outline-offset:1px}
 table{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums}
 th{font:600 .72rem/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -226,7 +230,10 @@ const SS=SD.S.map((s,si)=>({
   k:s.k.split(',').map(x=>{const [d,a]=x.split(':');return {d,a:a===''?null:+a}}),
   pl:s.pl.split(';').map(r=>{const a=r.split(',').map(Number);return {i:a[0],n:NAME(a[0]),enr:a[1],pres:a[2],mw:a[3],ml:a[4],sw:a[5],sl:a[6],elo:a[7],bw:a[8],bl:a[9],cbw:a[10],cbn:a[11],stw:a[12],stn:a[13],start:a[14],best:a[15],end:a[16],avg:a[17]/10,ch:a[18]}}),
   riv:s.riv,cl:s.cl,up:s.up,lv:s.lv,tm:s.tm||null}));
-const table=(head,rows,hl)=>'<table><thead><tr>'+head.map(h=>`<th class="${h[1]||''}">${h[0]}</th>`).join('')+'</tr></thead><tbody>'+rows.map((r,ri)=>`<tr class="${hl===ri?'hl':''}">`+r.map((c,j)=>`<td class="${head[j][1]||''}">${c}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+const table=(head,rows,hl,n=Infinity)=>'<table><thead><tr>'+head.map(h=>`<th class="${h[1]||''}">${h[0]}</th>`).join('')+'</tr></thead><tbody>'+rows.map((r,ri)=>`<tr class="${hl===ri?'hl':''}${ri>=n?' more':''}">`+r.map((c,j)=>`<td class="${head[j][1]||''}">${c}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+// tabela z pierwszymi n wierszami i przyciskiem rozwijającym całą listę
+const list=(head,rows,n=10)=>rows.length<=n?table(head,rows):`<div class="mw">${table(head,rows,-1,n)}<button type="button" class="morebtn" aria-expanded="false" data-l="Pokaż całą listę (${rows.length})">Pokaż całą listę (${rows.length})</button></div>`;
+document.addEventListener('click',e=>{const b=e.target.closest('.morebtn');if(!b)return;const o=b.parentNode.classList.toggle('open');b.textContent=o?'Zwiń':b.dataset.l;b.setAttribute('aria-expanded',o)});
 const empty=t=>`<p class="note">${t}</p>`;
 const short=s=>s.slice(2,4)+'/'+s.slice(7);
 const gd=String(D.gen||''), gdate=fd(gd.slice(0,10)), gtime=gd.slice(11,16);
@@ -316,28 +323,28 @@ function renderAll(){
   $('hZaw').textContent='Ścieżka przez grupy';
   setupSearch(P,drawPlayerAll);
   $('eRank').textContent='Tabele wszech czasów';$('hElo').textContent='Ranking Elo · aktywni';
-  const active=P.filter(p=>p.se.some(s=>s.si>=10)).sort((a,b)=>b.elo-a.elo).slice(0,12);
-  $('tElo').innerHTML=table([['#','rank'],['Zawodnik'],['Elo','n'],['Mecze','n']],active.map((p,i)=>[i+1,esc(p.n),p.elo,`${p.mw}–${p.ml}`]));
+  const active=P.filter(p=>p.se.some(s=>s.si>=10)).sort((a,b)=>b.elo-a.elo);
+  $('tElo').innerHTML=list([['#','rank'],['Zawodnik'],['Elo','n'],['Mecze','n']],active.map((p,i)=>[i+1,esc(p.n),p.elo,`${p.mw}–${p.ml}`]));
   $('nElo').textContent='Siła liczona z każdego meczu od 2015 roku. Aktywni, czyli grający w sezonie 2025/2026 lub 2026/2027.';
-  const att=P.filter(p=>p.enr>=60).sort((a,b)=>b.pres/b.enr-a.pres/a.enr).slice(0,10);
-  $('tAtt').innerHTML=table([['#','rank'],['Zawodnik'],['Obecność','n'],['Seria','n']],att.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.pres,p.enr))}% <span class="sc">${p.pres}/${p.enr}</span>`,p.ps]));
+  const att=P.filter(p=>p.enr>=60).sort((a,b)=>b.pres/b.enr-a.pres/a.enr);
+  $('tAtt').innerHTML=list([['#','rank'],['Zawodnik'],['Obecność','n'],['Seria','n']],att.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.pres,p.enr))}% <span class="sc">${p.pres}/${p.enr}</span>`,p.ps]));
   $('nAtt').textContent='Obecność na kolejkach, do których zawodnik był zapisany (minimum 60 zapisów), oraz najdłuższa seria kolejek bez nieobecności.';
   streaks(P);
-  $('tRiv').innerHTML=table([['Para'],['Mecze','n'],['Bilans','n']],D.rivals.map(r=>[`${esc(nm(r.a))} <span class="sc">vs</span> ${esc(nm(r.b))}`,r.x+r.y,`${r.x}–${r.y}`]));
-  $('tClose').innerHTML=table([['Data'],['Grupa'],['Mecz'],['Sety']],D.cl.slice(0,12).map(c=>[fd(c.d),`<span class="pill">${G(c.lvl)}</span>`,`${esc(nm(c.a))} <span class="mono">${c.res}</span> ${esc(nm(c.b))}`,`<span class="sc">${c.sc}</span>`]));
-  $('tUps').innerHTML=table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],D.ups.slice(0,12).map(u=>{const s=u.s.split(':').map(Number).sort((a,b)=>b-a).join(':');return [fd(u.d),`<span class="pill">${G(u.lvl)}</span>`,`<span class="w">${esc(nm(u.w))}</span>`,`<span class="mono">${s}</span>`,esc(nm(u.l)),`<span class="pill r">${u.p}%</span>`]}));
+  $('tRiv').innerHTML=list([['Para'],['Mecze','n'],['Bilans','n']],D.rivals.map(r=>[`${esc(nm(r.a))} <span class="sc">vs</span> ${esc(nm(r.b))}`,r.x+r.y,`${r.x}–${r.y}`]));
+  $('tClose').innerHTML=list([['Data'],['Grupa'],['Mecz'],['Sety']],D.cl.map(c=>[fd(c.d),`<span class="pill">${G(c.lvl)}</span>`,`${esc(nm(c.a))} <span class="mono">${c.res}</span> ${esc(nm(c.b))}`,`<span class="sc">${c.sc}</span>`]));
+  $('tUps').innerHTML=list([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],D.ups.map(u=>{const s=u.s.split(':').map(Number).sort((a,b)=>b-a).join(':');return [fd(u.d),`<span class="pill">${G(u.lvl)}</span>`,`<span class="w">${esc(nm(u.w))}</span>`,`<span class="mono">${s}</span>`,esc(nm(u.l)),`<span class="pill r">${u.p}%</span>`]}));
   style(P,40,60,'Mecze wygrane po przegranym pierwszym secie. Minimum 40 takich meczów.','Skuteczność w setach granych na przewagi. Minimum 60 takich setów.','Najwięcej przegranych setów na przewagi w całej historii.');
   show('cFin',true);
   const fin=P.filter(p=>p.dn>=40&&p.s1n>=80).map(p=>({p,d:pct(p.dw,p.dn)-pct(p.s1w,p.s1n)})).sort((a,b)=>b.d-a.d);
   const sg=d=>(d>0?'+':'')+d.toFixed(1).replace('.',',');
-  $('tFin').innerHTML=table([['Zawodnik'],['1. set','n'],['Decydujący','n'],['Różnica','n']],fin.slice(0,8).map(o=>[esc(o.p.n),pl_(pct(o.p.s1w,o.p.s1n))+'%',pl_(pct(o.p.dw,o.p.dn))+'%',`<span class="${o.d>=0?'w':'l'}">${sg(o.d)} pp</span>`]));
+  $('tFin').innerHTML=list([['Zawodnik'],['1. set','n'],['Decydujący','n'],['Różnica','n']],fin.map(o=>[esc(o.p.n),pl_(pct(o.p.s1w,o.p.s1n))+'%',pl_(pct(o.p.dw,o.p.dn))+'%',`<span class="${o.d>=0?'w':'l'}">${sg(o.d)} pp</span>`]));
   const b=D.bounce;
   kpis('kBounce',[[pl_(pct(b.bounce,b.bounce+b.stayUp))+'%','awansujących spada od razu tydzień później'],[pl_(pct(b.stayUp,b.bounce+b.stayUp))+'%','utrzymuje nową grupę lub idzie wyżej']]);
   $('kBounce').hidden=false;
   $('hClimb').textContent='Droga na szczyt';
-  $('tClimb').innerHTML=table([['Zawodnik'],['Debiut','n'],['Kolejki','n'],['Grupa A od']],D.climbs.slice(0,10).map(c=>[esc(nm(c.n)),`<span class="pill">${G(c.from)}</span>`,c.k,fd(c.d)]));
+  $('tClimb').innerHTML=list([['Zawodnik'],['Debiut','n'],['Kolejki','n'],['Grupa A od']],D.climbs.map(c=>[esc(nm(c.n)),`<span class="pill">${G(c.from)}</span>`,c.k,fd(c.d)]));
   $('nClimb').textContent='Pierwsze wejście do grupy A, licząc od grupy, w której zawodnik debiutował. Kolejki to liczba obecności do tego dnia.';
-  $('tWinda').innerHTML=table([['Zawodnik'],['Zmiany','n'],['Zakres','n']],D.winda.slice(0,10).map(w=>[esc(nm(w.n)),`${pl_(w.rate)}% <span class="sc">${w.ch}/${w.k-1}</span>`,`${G(w.min)}–${G(w.max)}`]));
+  $('tWinda').innerHTML=list([['Zawodnik'],['Zmiany','n'],['Zakres','n']],D.winda.map(w=>[esc(nm(w.n)),`${pl_(w.rate)}% <span class="sc">${w.ch}/${w.k-1}</span>`,`${G(w.min)}–${G(w.max)}`]));
   $('nWinda').textContent='Jak często grupa zmienia się z kolejki na kolejkę (minimum 30 obecności).';
   levels(null);
   $('nLvl').textContent='Wszystkie sezony. Tiebreak to odsetek meczów rozstrzygniętych w trzecim secie. Na przewagi to odsetek setów, w których przegrany doszedł do punktu przed limitem, czyli był remis na koniec seta i grano dalej na przewagi lub do jednego punktu. Limit seta ustalam dla każdej grupy w każdej kolejce na podstawie wyników. Paski są w skali najwyższej wartości w kolumnie.';
@@ -362,27 +369,27 @@ function renderSeason(si){
   $('hZaw').textContent=`Zawodnik w sezonie ${name}`;
   setupSearch(s.pl,r=>drawPlayerSeason(r,si));
   $('eRank').textContent=`Sezon ${name}`;$('hElo').textContent='Ranking Elo · koniec sezonu';
-  $('tElo').innerHTML=table([['#','rank'],['Zawodnik'],['Elo','n'],['Mecze','n']],s.pl.slice().sort((a,b)=>b.elo-a.elo).slice(0,12).map((p,i)=>[i+1,esc(p.n),p.elo,`${p.mw}–${p.ml}`]));
+  $('tElo').innerHTML=list([['#','rank'],['Zawodnik'],['Elo','n'],['Mecze','n']],s.pl.slice().sort((a,b)=>b.elo-a.elo).map((p,i)=>[i+1,esc(p.n),p.elo,`${p.mw}–${p.ml}`]));
   $('nElo').textContent='Elo po ostatnim meczu zawodnika w tym sezonie, liczone od 2015 roku.';
   const minE=Math.max(3,Math.round(meta.kol*0.6));
-  const att=s.pl.filter(p=>p.enr>=minE).sort((a,b)=>b.pres/b.enr-a.pres/a.enr||b.pres-a.pres).slice(0,10);
-  $('tAtt').innerHTML=att.length?table([['#','rank'],['Zawodnik'],['Obecność','n'],['Mecze','n']],att.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.pres,p.enr))}% <span class="sc">${p.pres}/${p.enr}</span>`,p.mw+p.ml])):empty('Za mało kolejek.');
+  const att=s.pl.filter(p=>p.enr>=minE).sort((a,b)=>b.pres/b.enr-a.pres/a.enr||b.pres-a.pres);
+  $('tAtt').innerHTML=att.length?list([['#','rank'],['Zawodnik'],['Obecność','n'],['Mecze','n']],att.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.pres,p.enr))}% <span class="sc">${p.pres}/${p.enr}</span>`,p.mw+p.ml])):empty('Za mało kolejek.');
   $('nAtt').textContent=`Obecność na kolejkach, do których zawodnik był zapisany (minimum ${minE} zapisów).`;
   streaks(s.pl);
-  $('tRiv').innerHTML=table([['Para'],['Mecze','n'],['Bilans','n']],s.riv.map(r=>[`${esc(NAME(r[0]))} <span class="sc">vs</span> ${esc(NAME(r[1]))}`,r[2]+r[3],`${r[2]}–${r[3]}`]));
-  $('tClose').innerHTML=s.cl.length?table([['Data'],['Grupa'],['Mecz'],['Sety']],s.cl.map(c=>[fd6(c[0]),`<span class="pill">${G(c[1])}</span>`,`${esc(NAME(c[2]))} <span class="mono">${c[4]}</span> ${esc(NAME(c[3]))}`,`<span class="sc">${c[5]}</span>`])):empty('Brak meczów trzysetowych.');
-  $('tUps').innerHTML=s.up.length?table([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],s.up.map(u=>[fd6(u[0]),`<span class="pill">${G(u[1])}</span>`,`<span class="w">${esc(NAME(u[2]))}</span>`,`<span class="mono">${u[4]}</span>`,esc(NAME(u[3])),`<span class="pill r">${u[5]}%</span>`])):empty('Brak wyraźnych niespodzianek.');
+  $('tRiv').innerHTML=list([['Para'],['Mecze','n'],['Bilans','n']],s.riv.map(r=>[`${esc(NAME(r[0]))} <span class="sc">vs</span> ${esc(NAME(r[1]))}`,r[2]+r[3],`${r[2]}–${r[3]}`]));
+  $('tClose').innerHTML=s.cl.length?list([['Data'],['Grupa'],['Mecz'],['Sety']],s.cl.map(c=>[fd6(c[0]),`<span class="pill">${G(c[1])}</span>`,`${esc(NAME(c[2]))} <span class="mono">${c[4]}</span> ${esc(NAME(c[3]))}`,`<span class="sc">${c[5]}</span>`])):empty('Brak meczów trzysetowych.');
+  $('tUps').innerHTML=s.up.length?list([['Data'],['Grupa'],['Zwycięzca'],['Wynik','n'],['Rywal'],['Szansa','n']],s.up.map(u=>[fd6(u[0]),`<span class="pill">${G(u[1])}</span>`,`<span class="w">${esc(NAME(u[2]))}</span>`,`<span class="mono">${u[4]}</span>`,esc(NAME(u[3])),`<span class="pill r">${u[5]}%</span>`])):empty('Brak wyraźnych niespodzianek.');
   const minCb=Math.max(4,Math.round(meta.kol*0.5)),minSt=Math.max(5,Math.round(meta.kol*0.6));
   style(s.pl,minCb,minSt,`Mecze wygrane po przegranym pierwszym secie. Minimum ${minCb} takich meczów.`,`Skuteczność w setach granych na przewagi. Minimum ${minSt} takich setów.`,`Najwięcej przegranych setów na przewagi w sezonie ${name}.`);
   show('cFin',false);
   $('kBounce').hidden=true;
   $('hClimb').textContent='Największe awanse w sezonie';
-  const cl=s.pl.filter(p=>p.start-p.best>0).sort((a,b)=>(b.start-b.best)-(a.start-a.best)||a.best-b.best).slice(0,10);
-  $('tClimb').innerHTML=cl.length?table([['Zawodnik'],['Start','n'],['Najwyżej','n'],['Koniec','n']],cl.map(p=>[esc(p.n),`<span class="pill">${G(p.start)}</span>`,`<span class="pill r">${G(p.best)}</span>`,G(p.end)])):empty('Nikt jeszcze nie awansował.');
+  const cl=s.pl.filter(p=>p.start-p.best>0).sort((a,b)=>(b.start-b.best)-(a.start-a.best)||a.best-b.best);
+  $('tClimb').innerHTML=cl.length?list([['Zawodnik'],['Start','n'],['Najwyżej','n'],['Koniec','n']],cl.map(p=>[esc(p.n),`<span class="pill">${G(p.start)}</span>`,`<span class="pill r">${G(p.best)}</span>`,G(p.end)])):empty('Nikt jeszcze nie awansował.');
   $('nClimb').textContent='O ile grup zawodnik poszedł w górę od pierwszej kolejki sezonu do najwyższej osiągniętej grupy.';
   const minP=Math.max(4,Math.round(meta.kol*0.5));
-  const wd=s.pl.filter(p=>p.pres>=minP).map(p=>({p,r:p.ch/(p.pres-1)})).sort((a,b)=>b.r-a.r).slice(0,10);
-  $('tWinda').innerHTML=wd.length?table([['Zawodnik'],['Zmiany','n'],['Start → koniec','n']],wd.map(o=>[esc(o.p.n),`${pl_(Math.round(1000*o.r)/10)}% <span class="sc">${o.p.ch}/${o.p.pres-1}</span>`,`${G(o.p.start)} → ${G(o.p.end)}`])):empty('Za mało kolejek.');
+  const wd=s.pl.filter(p=>p.pres>=minP).map(p=>({p,r:p.ch/(p.pres-1)})).sort((a,b)=>b.r-a.r);
+  $('tWinda').innerHTML=wd.length?list([['Zawodnik'],['Zmiany','n'],['Start → koniec','n']],wd.map(o=>[esc(o.p.n),`${pl_(Math.round(1000*o.r)/10)}% <span class="sc">${o.p.ch}/${o.p.pres-1}</span>`,`${G(o.p.start)} → ${G(o.p.end)}`])):empty('Za mało kolejek.');
   $('nWinda').textContent=`Jak często grupa zmieniała się z kolejki na kolejkę (minimum ${minP} obecności).`;
   levels(si);
   $('nLvl').textContent=`Sezon ${name}. Tiebreak to mecze rozstrzygnięte w trzecim secie, na przewagi to sety, w których był remis na punkt przed końcem.`;
@@ -421,15 +428,15 @@ function seasonTable(hl){
   $('tSeason').innerHTML=table([['Sezon'],['Kolejki','n'],['Zawodnicy','n'],['Śr. obecnych','n'],['Frekwencja','n'],['Nowi','n'],['Nie wrócili','n'],['Mecze','n']],
     D.seasons.map(s=>[s.s,s.kol,s.players,pl_(s.avgPres),pl_(s.att)+'%',s.newP,s.left==null?'–':s.left,fmt(s.ms)]).reverse(),hl<0?-1:D.seasons.length-1-hl);
 }
-function streaks(list){
-  $('tWin').innerHTML=table([['#','rank'],['Zawodnik'],['Mecze z rzędu','n']],list.slice().sort((a,b)=>b.bw-a.bw).slice(0,10).map((p,i)=>[i+1,esc(p.n),`<b>${p.bw}</b>`]));
+function streaks(pls){
+  $('tWin').innerHTML=list([['#','rank'],['Zawodnik'],['Mecze z rzędu','n']],pls.slice().sort((a,b)=>b.bw-a.bw).map((p,i)=>[i+1,esc(p.n),`<b>${p.bw}</b>`]));
 }
-function style(list,minCb,minSt,nCb,nCl,nPe){
-  const cb=list.filter(p=>p.cbn>=minCb).sort((a,b)=>b.cbw/b.cbn-a.cbw/a.cbn||b.cbn-a.cbn).slice(0,10);
-  $('tCb').innerHTML=cb.length?table([['#','rank'],['Zawodnik'],['Powroty','n']],cb.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.cbw,p.cbn))}% <span class="sc">${p.cbw}/${p.cbn}</span>`])):empty('Za mało meczów.');
+function style(pls,minCb,minSt,nCb,nCl,nPe){
+  const cb=pls.filter(p=>p.cbn>=minCb).sort((a,b)=>b.cbw/b.cbn-a.cbw/a.cbn||b.cbn-a.cbn);
+  $('tCb').innerHTML=cb.length?list([['#','rank'],['Zawodnik'],['Powroty','n']],cb.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.cbw,p.cbn))}% <span class="sc">${p.cbw}/${p.cbn}</span>`])):empty('Za mało meczów.');
   $('nCb').textContent=nCb;
-  const cl=list.filter(p=>p.stn>=minSt).sort((a,b)=>b.stw/b.stn-a.stw/a.stn||b.stn-a.stn).slice(0,10);
-  $('tClutch').innerHTML=cl.length?table([['#','rank'],['Zawodnik'],['Na przewagi','n']],cl.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.stw,p.stn))}% <span class="sc">${p.stw}/${p.stn}</span>`])):empty('Za mało setów na przewagi.');
+  const cl=pls.filter(p=>p.stn>=minSt).sort((a,b)=>b.stw/b.stn-a.stw/a.stn||b.stn-a.stn);
+  $('tClutch').innerHTML=cl.length?list([['#','rank'],['Zawodnik'],['Na przewagi','n']],cl.map((p,i)=>[i+1,esc(p.n),`${pl_(pct(p.stw,p.stn))}% <span class="sc">${p.stw}/${p.stn}</span>`])):empty('Za mało setów na przewagi.');
   $('nClutch').textContent=nCl;
 }
 function levels(si){
