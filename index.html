@@ -33,7 +33,7 @@ h1{font-size:clamp(2.4rem,7vw,4rem);text-transform:uppercase}
 h2{font-size:1.9rem;text-transform:uppercase}
 h3{font-size:1.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
 .eyebrow{font:600 .78rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--tin)}
-.lede{color:var(--muted);max-width:62ch;margin:.6rem 0 0}
+.lede{color:var(--muted);margin:.6rem 0 0}
 .ball{display:inline-flex;gap:3px;vertical-align:middle;margin-right:8px}
 .ball i{width:9px;height:9px;border-radius:50%;background:var(--dot);display:block}
 nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:2px solid var(--tin);margin:22px 0 8px;padding:8px 0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
@@ -72,7 +72,7 @@ svg text{fill:var(--muted);font:11px var(--f-mono)}
 .pstats span{font-size:.8rem;color:var(--muted)}
 .sc{font-family:var(--f-mono);font-size:.82rem;color:var(--muted)}
 .w{color:var(--good);font-weight:600}.l{color:var(--bad);font-weight:600}
-footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem;display:grid;gap:6px;max-width:75ch}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem;display:grid;gap:6px}
 @media (prefers-reduced-motion:no-preference){.bar>i{transition:width .4s ease}}
 .scope{display:flex;align-items:center;gap:8px;padding-right:8px;margin-right:4px;border-right:1px solid var(--line)}
 .scope label{font:600 .72rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -308,7 +308,7 @@ function renderAll(){
   kpis('kpis',[[D.SN.length,odm(D.SN.length,'sezon','sezony','sezonów')],[totK,odm(totK,'kolejka','kolejki','kolejek')],[fmt(totM),odm(totM,'mecz','mecze','meczów')],[totPl,odm(totPl,'zawodnik lub zawodniczka','zawodników i zawodniczek','zawodników i zawodniczek')]]);
   $('hSez').textContent='Sezon po sezonie';$('hChSez').textContent='Frekwencja w sezonach';
   lineChart($('chSeason'),D.seasons.map(s=>short(s.s)),[{v:D.seasons.map(s=>s.att),c:css('--tin'),fmt:v=>pl_(v)+'%'}],{min:65,max:85,ticks:[65,70,75,80,85],unit:'%',aria:'Frekwencja w kolejnych sezonach'});
-  $('nChSez').textContent='Odsetek zapisanych do grupy, którzy rozegrali w kolejce co najmniej jeden mecz. Sezon 2026/2027 obejmuje dopiero 4 kolejki.';
+  $('nChSez').textContent=`Odsetek zapisanych do grupy, którzy rozegrali w kolejce co najmniej jeden mecz. Sezon ${D.SN[D.SN.length-1]} obejmuje na razie ${D.seasons[D.seasons.length-1].kol} ${odm(D.seasons[D.seasons.length-1].kol,'kolejkę','kolejki','kolejek')}.`;
   seasonTable(-1);
   gaAll();
   monthChart(mOrder.map(m=>{const v=D.mon[m];return v?pct(v[0],v[1]):null}));
