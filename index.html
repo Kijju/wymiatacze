@@ -268,8 +268,8 @@ const mOrder=[9,10,11,12,1,2,3,4,5,6];
 /* ---------- player card ---------- */
 const H2=D.h2h;
 function rivalsHtml(pi){
-  const rv=H2.filter(r=>r[0]===pi||r[1]===pi).map(r=>{const me=r[0]===pi;return {o:P[me?r[1]:r[0]].n,w:me?r[2]:r[3],l:me?r[3]:r[2]}}).sort((a,b)=>(b.w+b.l)-(a.w+a.l)).slice(0,8);
-  return rv.length? `<div><div class="eyebrow" style="color:var(--muted);margin-bottom:4px">Najczęstsi rywale · cała historia</div><div class="tbl">${table([['Rywal'],['Bilans','n'],[' ']],rv.map(r=>[esc(r.o),`<span class="${r.w>=r.l?'w':'l'}">${r.w}–${r.l}</span>`,`<div class="bar"><i style="width:${pct(r.w,r.w+r.l)}%"></i></div>`]))}</div></div>` : '';
+  const rv=H2.filter(r=>r[0]===pi||r[1]===pi).map(r=>{const me=r[0]===pi;return {o:P[me?r[1]:r[0]].n,w:me?r[2]:r[3],l:me?r[3]:r[2]}}).sort((a,b)=>(b.w+b.l)-(a.w+a.l));
+  return rv.length? `<div><div class="eyebrow" style="color:var(--muted);margin-bottom:4px">Najczęstsi rywale · cała historia</div><div class="tbl">${list([['Rywal'],['Bilans','n'],[' ']],rv.map(r=>[esc(r.o),`<span class="${r.w>=r.l?'w':'l'}">${r.w}–${r.l}</span>`,`<div class="bar"><i style="width:${pct(r.w,r.w+r.l)}%"></i></div>`]),8)}</div></div>` : '';
 }
 function statGrid(items){return `<div class="pstats">${items.map(i=>`<div><b>${i[0]}</b><span>${i[1]}</span></div>`).join('')}</div>`}
 function drawPlayerAll(p){

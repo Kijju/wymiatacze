@@ -154,7 +154,7 @@ function compute(raw, today) {
       return [si, e[0], e[1], L[0], Math.min(...L), L[L.length - 1], r1(L.reduce((x, y) => x + y, 0) / L.length)].join(':'); }).filter(Boolean).join(';');
     return [p.n, p.enr, p.pres, p.mw, p.ml, p.sw, p.sl, Math.round(p.elo), Math.round(p.em), p.bw, p.bl, p.pbest, p.s1[0], p.s1[1], p.dec[0], p.dec[1], p.cb[0], p.cb[1], p.st[0], p.st[1], p.st[1] - p.st[0], se];
   });
-  const h2h = Object.entries(H).filter(([k, v]) => v[0] + v[1] >= 15).map(([k, v]) => { const [a, b] = k.split('|'); return [a, b, v]; })
+  const h2h = Object.entries(H).filter(([k, v]) => v[0] + v[1] >= 5).map(([k, v]) => { const [a, b] = k.split('|'); return [a, b, v]; })
     .filter(([a, b]) => idx[a] !== undefined && idx[b] !== undefined && idx[a] < plist.length && idx[b] < plist.length)
     .map(([a, b, v]) => [idx[a], idx[b], v[0], v[1]]);
 
