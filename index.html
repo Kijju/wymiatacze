@@ -393,7 +393,7 @@ function renderSeason(si){
   $('nWinda').textContent=`Jak często grupa zmieniała się z kolejki na kolejkę (minimum ${minP} obecności).`;
   levels(si);
   $('nLvl').textContent=`Sezon ${name}. Tiebreak to mecze rozstrzygnięte w trzecim secie, na przewagi to sety, w których był remis na punkt przed końcem.`;
-  if(s.tm){times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. „50% do” to godzina, przed którą grupa kończy w połowie wieczorów, a „90% do” to godzina, przed którą kończy w 90% wieczorów.`;}
+  if(s.tm){const few=times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. „50% do” to godzina, przed którą grupa kończy w połowie wieczorów, a `+(few?'„Najpóźniej” to koniec najpóźniejszego wieczoru. Przy co najmniej 11 wieczorach ta kolumna zmieni się w „90% do”.':'„90% do” to godzina, przed którą kończy w 90% wieczorów.');}
   else{$('tTime').innerHTML='';$('nTime').textContent='Okienka kortów są zapisane w systemie dopiero od sezonu 2024/2025, więc dla tego sezonu nie da się tego policzyć.';}
 }
 
@@ -449,8 +449,11 @@ function levels(si){
   if(si==null) head.push(['Śr. różnica w secie','n']);
   $('tLvl').innerHTML=table(head,rows.map(r=>{const c=[`<span class="pill">${G(r[0])}</span>`,fmt(r[1]),vb(r[2],mTb),vb(r[3],mPr)];if(si==null)c.push(diff[r[0]]==null?'–':pl_(diff[r[0]]));return c}));
 }
+// przy mniej niż 11 wieczorach 90. percentyl to po prostu najpóźniejszy wieczór, więc tak nazywamy kolumnę
 function times(rows){
-  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['50% do','n'],['Po czasie','n'],['90% do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
+  const few=rows.length>0&&Math.max(...rows.map(t=>t[2]))<11;
+  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['50% do','n'],['Po czasie','n'],[few?'Najpóźniej':'90% do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
+  return few;
 }
 
 /* ---------- scope switch ---------- */
