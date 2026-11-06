@@ -200,11 +200,14 @@ function compute(raw, today) {
       // pierwszy wynik: minuty od początku okienka (rozgrzewka + pierwszy mecz)
       // czas meczu: grupa gra na dwóch kortach, więc odstęp między kolejnymi wynikami razy 2
       const first = ts[0] - (sh * 60 + sm), dur = last > 0 ? 2 * (end - ts[0]) / last : null;
-      for (const o of [(tAll[g.lvl] ||= { w, o: [], f: [], d: [], m: 0 }), (((tPer[k.si] ||= {})[g.lvl]) ||= { w, o: [], f: [], d: [], m: 0 })]) {
-        o.o.push(over); o.f.push(first); o.m += g.m.length; if (dur != null) o.d.push(dur); } }); });
+      for (const o of [(tAll[g.lvl] ||= { w, o: [], f: [], d: [], m: 0, t: {} }), (((tPer[k.si] ||= {})[g.lvl]) ||= { w, o: [], f: [], d: [], m: 0, t: {} })]) {
+        o.o.push(over); o.f.push(first); o.m += g.m.length; if (g.T) o.t[g.T] = (o.t[g.T] || 0) + 1; if (dur != null) o.d.push(dur); } }); });
+  // do ilu grano: wartości z co najmniej 20% wieczorów, najczęstsza pierwsza, np. "9" albo "9/7"
+  const lims = t => { const e = Object.entries(t).sort((a, b) => b[1] - a[1]), n = e.reduce((x, y) => x + y[1], 0);
+    return e.filter(([, c], i) => i === 0 || c >= 0.2 * n).map(([v]) => v).join('/'); };
   const med = a => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : null; };
   const trow = (l, o) => { const s = o.o.slice().sort((a, b) => a - b); const d = med(o.d);
-    return [+l, o.w, s.length, s[Math.floor(s.length / 2)], r1(100 * s.filter(x => x > 0).length / s.length), s[Math.floor(s.length * 0.9)], med(o.f), d == null ? null : Math.round(d), o.m]; };
+    return [+l, o.w, s.length, s[Math.floor(s.length / 2)], r1(100 * s.filter(x => x > 0).length / s.length), s[Math.floor(s.length * 0.9)], med(o.f), d == null ? null : Math.round(d), o.m, lims(o.t)]; };
 
   const ymd6 = d => d.slice(2).replace(/-/g, '');
   const closeSort = (a, b) => b.nd - a.nd || b.tot - a.tot;
@@ -226,7 +229,7 @@ function compute(raw, today) {
     return o; });
 
   const D = { gen: today, SN, pl, h2h, mv: {}, bounce: { prom, bounce, stayUp }, climbs, winda, seasons, mon, levels,
-    times: Object.entries(tAll).map(([l, o]) => { const t = trow(l, o); return { l: t[0], w: t[1], n: t[2], med: t[3], late: t[4], p90: t[5], first: t[6], dur: t[7], ms: t[8] }; }),
+    times: Object.entries(tAll).map(([l, o]) => { const t = trow(l, o); return { l: t[0], w: t[1], n: t[2], med: t[3], late: t[4], p90: t[5], first: t[6], dur: t[7], ms: t[8], lim: t[9] }; }),
     rivals, ups: upsAll, cl: clAll,
     ga: Object.fromEntries(SA.map((a, si) => [si, Object.entries(a.ga).map(([l, r]) => [+l, ...r])])),
     lvx: Object.fromEntries(SA.map((a, si) => [si, a.lvx])) };
