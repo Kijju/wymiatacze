@@ -452,7 +452,7 @@ function levels(si){
 // przy mniej niż 11 wieczorach 90. percentyl to po prostu najpóźniejszy wieczór, więc tak nazywamy kolumnę
 function times(rows){
   const few=rows.length>0&&Math.max(...rows.map(t=>t[2]))<11;
-  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['Mecze','n'],['Pierwszy wynik','n'],['Mecz trwa','n'],['50% do','n'],['Po czasie','n'],[few?'Najpóźniej':'90% do','n']],rows.map(t=>{const hhmm=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');const [st,en]=t[1].split(' ')[1].split('-').map(x=>{const [h,m]=x.split(':').map(Number);return h*60+m});const at=m=>hhmm(en+m);return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],t[8]==null?'–':fmt(t[8]),t[6]==null?'–':`${hhmm(st+t[6])} <span class="sc">+${t[6]}′</span>`,t[7]==null?'–':`${t[7]} min`,at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
+  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['Mecze na wieczór','n'],['Pierwszy wynik','n'],['Mecz trwa','n'],['50% do','n'],['Po czasie','n'],[few?'Najpóźniej':'90% do','n']],rows.map(t=>{const hhmm=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');const [st,en]=t[1].split(' ')[1].split('-').map(x=>{const [h,m]=x.split(':').map(Number);return h*60+m});const at=m=>hhmm(en+m);return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],t[8]==null||!t[2]?'–':pl_(Math.round(10*t[8]/t[2])/10),t[6]==null?'–':`${hhmm(st+t[6])} <span class="sc">+${t[6]}′</span>`,t[7]==null?'–':`${t[7]} min`,at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
   return few;
 }
 
