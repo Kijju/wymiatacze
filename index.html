@@ -348,8 +348,8 @@ function renderAll(){
   $('nWinda').textContent='Jak często grupa zmienia się z kolejki na kolejkę (minimum 30 obecności).';
   levels(null);
   $('nLvl').textContent='Wszystkie sezony. Tiebreak to odsetek meczów rozstrzygniętych w trzecim secie. Na przewagi to odsetek setów, w których przegrany doszedł do punktu przed limitem, czyli był remis na koniec seta i grano dalej na przewagi lub do jednego punktu. Limit seta ustalam dla każdej grupy w każdej kolejce na podstawie wyników. Paski są w skali najwyższej wartości w kolumnie.';
-  times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90]));
-  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. „50% do” to godzina, przed którą grupa kończy w połowie wieczorów, a „90% do” to godzina, przed którą kończy w 90% wieczorów.';
+  times(D.times.map(t=>[t.l,t.w,t.n,t.med,t.late,t.p90,t.first,t.dur]));
+  $('nTime').textContent='Sezony 2024/2025–2026/2027, wszystkie grupy. Koniec wieczoru to ostatni wynik wpisany w rytmie gry: pojedyncze poprawki dopisane po przerwie dłuższej niż 30 minut nie przesuwają końca. Pierwszy wynik to typowa godzina wpisania pierwszego meczu (obok minuty od początku okienka, czyli rozgrzewka i pierwszy mecz). Mecz trwa to typowy czas jednego meczu na korcie: grupa gra na dwóch kortach, więc to podwojony średni odstęp między kolejnymi wynikami. „50% do” to godzina, przed którą grupa kończy w połowie wieczorów, a „90% do” to godzina, przed którą kończy w 90% wieczorów.';
 }
 
 /* ---------- ONE season ---------- */
@@ -393,7 +393,7 @@ function renderSeason(si){
   $('nWinda').textContent=`Jak często grupa zmieniała się z kolejki na kolejkę (minimum ${minP} obecności).`;
   levels(si);
   $('nLvl').textContent=`Sezon ${name}. Tiebreak to mecze rozstrzygnięte w trzecim secie, na przewagi to sety, w których był remis na punkt przed końcem.`;
-  if(s.tm){const few=times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. „50% do” to godzina, przed którą grupa kończy w połowie wieczorów, a `+(few?'„Najpóźniej” to koniec najpóźniejszego wieczoru. Przy co najmniej 11 wieczorach ta kolumna zmieni się w „90% do”.':'„90% do” to godzina, przed którą kończy w 90% wieczorów.');}
+  if(s.tm){const few=times(s.tm);$('nTime').textContent=`Sezon ${name}. Koniec wieczoru to ostatni wynik wpisany w rytmie gry, bez poprawek dopisanych później. Pierwszy wynik to typowa godzina wpisania pierwszego meczu, a mecz trwa to typowy czas jednego meczu na korcie (dwa korty, więc podwojony odstęp między wynikami). „50% do” to godzina, przed którą grupa kończy w połowie wieczorów, a `+(few?'„Najpóźniej” to koniec najpóźniejszego wieczoru. Przy co najmniej 11 wieczorach ta kolumna zmieni się w „90% do”.':'„90% do” to godzina, przed którą kończy w 90% wieczorów.');}
   else{$('tTime').innerHTML='';$('nTime').textContent='Okienka kortów są zapisane w systemie dopiero od sezonu 2024/2025, więc dla tego sezonu nie da się tego policzyć.';}
 }
 
@@ -452,7 +452,7 @@ function levels(si){
 // przy mniej niż 11 wieczorach 90. percentyl to po prostu najpóźniejszy wieczór, więc tak nazywamy kolumnę
 function times(rows){
   const few=rows.length>0&&Math.max(...rows.map(t=>t[2]))<11;
-  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['50% do','n'],['Po czasie','n'],[few?'Najpóźniej':'90% do','n']],rows.map(t=>{const end=t[1].split('-')[1].split(':').map(Number);const at=m=>{const x=end[0]*60+end[1]+m;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
+  $('tTime').innerHTML=table([['Grupa'],['Dzień i godziny'],['Wieczory','n'],['Pierwszy wynik','n'],['Mecz trwa','n'],['50% do','n'],['Po czasie','n'],[few?'Najpóźniej':'90% do','n']],rows.map(t=>{const hhmm=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');const [st,en]=t[1].split(' ')[1].split('-').map(x=>{const [h,m]=x.split(':').map(Number);return h*60+m});const at=m=>hhmm(en+m);return [`<span class="pill">${G(t[0])}</span>`,t[1],t[2],t[6]==null?'–':`${hhmm(st+t[6])} <span class="sc">+${t[6]}′</span>`,t[7]==null?'–':`${t[7]} min`,at(t[3]),`<span class="${t[4]>40?'l':''}">${pl_(t[4])}%</span>`,at(t[5])]}));
   return few;
 }
 

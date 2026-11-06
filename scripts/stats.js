@@ -194,11 +194,17 @@ function compute(raw, today) {
       const ts = g.m.map(m => m[5]).filter(t => t && t.slice(0, 10) === dd).map(t => { const [h, mi] = t.slice(11, 16).split(':').map(Number); return h * 60 + mi; })
         .filter(x => x >= sh * 60 + sm - 30).sort((a, b) => a - b);
       if (ts.length < Math.max(2, Math.ceil(g.m.length * 0.6))) return;
-      let end = ts[ts.length - 1];
-      for (let i = 1; i < ts.length; i++) if (ts[i] - ts[i - 1] > 30 && ts.length - i <= 2) { end = ts[i - 1]; break; }
-      const over = end - (eh * 60 + em), w = DN[+day] + ' ' + span;
-      ((tAll[g.lvl] ||= { w, o: [] }).o).push(over); (((tPer[k.si] ||= {})[g.lvl] ||= { w, o: [] }).o).push(over); }); });
-  const trow = (l, o) => { const s = o.o.slice().sort((a, b) => a - b); return [+l, o.w, s.length, s[Math.floor(s.length / 2)], r1(100 * s.filter(x => x > 0).length / s.length), s[Math.floor(s.length * 0.9)]]; };
+      let last = ts.length - 1;
+      for (let i = 1; i < ts.length; i++) if (ts[i] - ts[i - 1] > 30 && ts.length - i <= 2) { last = i - 1; break; }
+      const end = ts[last], over = end - (eh * 60 + em), w = DN[+day] + ' ' + span;
+      // pierwszy wynik: minuty od początku okienka (rozgrzewka + pierwszy mecz)
+      // czas meczu: grupa gra na dwóch kortach, więc odstęp między kolejnymi wynikami razy 2
+      const first = ts[0] - (sh * 60 + sm), dur = last > 0 ? 2 * (end - ts[0]) / last : null;
+      for (const o of [(tAll[g.lvl] ||= { w, o: [], f: [], d: [] }), (((tPer[k.si] ||= {})[g.lvl]) ||= { w, o: [], f: [], d: [] })]) {
+        o.o.push(over); o.f.push(first); if (dur != null) o.d.push(dur); } }); });
+  const med = a => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : null; };
+  const trow = (l, o) => { const s = o.o.slice().sort((a, b) => a - b); const d = med(o.d);
+    return [+l, o.w, s.length, s[Math.floor(s.length / 2)], r1(100 * s.filter(x => x > 0).length / s.length), s[Math.floor(s.length * 0.9)], med(o.f), d == null ? null : Math.round(d)]; };
 
   const ymd6 = d => d.slice(2).replace(/-/g, '');
   const closeSort = (a, b) => b.nd - a.nd || b.tot - a.tot;
@@ -220,7 +226,7 @@ function compute(raw, today) {
     return o; });
 
   const D = { gen: today, SN, pl, h2h, mv: {}, bounce: { prom, bounce, stayUp }, climbs, winda, seasons, mon, levels,
-    times: Object.entries(tAll).map(([l, o]) => { const t = trow(l, o); return { l: t[0], w: t[1], n: t[2], med: t[3], late: t[4], p90: t[5] }; }),
+    times: Object.entries(tAll).map(([l, o]) => { const t = trow(l, o); return { l: t[0], w: t[1], n: t[2], med: t[3], late: t[4], p90: t[5], first: t[6], dur: t[7] }; }),
     rivals, ups: upsAll, cl: clAll,
     ga: Object.fromEntries(SA.map((a, si) => [si, Object.entries(a.ga).map(([l, r]) => [+l, ...r])])),
     lvx: Object.fromEntries(SA.map((a, si) => [si, a.lvx])) };
